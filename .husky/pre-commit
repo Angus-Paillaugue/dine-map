@@ -1,0 +1,3 @@
+echo "🔍 Husky pre-commit hook triggered"
+
+bunx lint-staged

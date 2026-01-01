@@ -1,0 +1,40 @@
+services:
+  web:
+    build: .
+    container_name: dine_map_web
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - ORIGIN=http://localhost:4173
+      - POSTGRES_HOST=db
+      - TILES_HOST=tileserver
+    ports:
+      - '4173:3000'
+
+  db:
+    image: postgres:18.1
+    container_name: dine_map_db
+    ports:
+      - '${POSTGRES_PORT}:5432'
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - pg_data:/var/lib/postgresql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+
+  tileserver:
+    image: maptiler/tileserver-gl
+    container_name: dine_map_tileserver
+    restart: unless-stopped
+    volumes:
+      - ./tileset:/data:Z
+    command: ["-c", "/data/config.json"]
+    ports:
+      - "${TILES_PORT}:8080"
+
+volumes:
+  pg_data:

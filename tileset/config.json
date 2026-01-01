@@ -1,0 +1,22 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data",
+      "fonts": "fonts",
+      "mbtiles": ""
+    }
+  },
+  "styles": {
+    "dark-matter": {
+      "style": "styles.json",
+      "tilejson": {
+        "type": "vector"
+      }
+    }
+  },
+  "data": {
+    "openmaptiles": {
+      "mbtiles": "tiles.mbtiles"
+    }
+  }
+}

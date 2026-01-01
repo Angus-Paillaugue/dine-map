@@ -1,0 +1,12 @@
+\c dine_map;
+
+GRANT ALL PRIVILEGES ON DATABASE dine_map TO dine_map_user;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT ALL ON TABLES TO dine_map_user;
+
+CREATE TABLE migrations (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
