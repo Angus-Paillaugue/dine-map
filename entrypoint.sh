@@ -22,7 +22,7 @@ echo "Database is ready!"
 # Run database migrations
 bun run db:migrate
 
-echo "Running outfitter version $(cat ./VERSION)"
+echo "Running Dine Map version $(cat ./VERSION)"
 
 # Launch prod server
 bun --bun run build/index.js

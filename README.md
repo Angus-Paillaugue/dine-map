@@ -19,7 +19,7 @@ If you are running the frontend behind a web
 ## With custom self-hosted tiles
 
 You first need to generate the tiles.
-To do so, open [.env](.env) and set the `TILE_CUSTOM` to true, `TILES_CONTINENT` to the continent you want to download the tiles, and optionally (it's heavily recommended), set `TILES_COUNTRY` to the country of your choosing.
+To do so, open [.env](.env) and set the `TILES_CONTINENT` to the continent you want to download the tiles, and optionally (it's heavily recommended), set `TILES_COUNTRY` to the country of your choosing.
 
 Then run the generation script
 
@@ -39,16 +39,6 @@ You can now run everything :
 
 ```bash
 docker compose up -d
-```
-
-## With cloud tiles
-
-This is the simple version of running the project, it just involves setting `TILE_CUSTOM` to `false` in [.env](.env)
-
-You can now just start the webserver and database and it's done!
-
-```bash
-docker compose up db web -d
 ```
 
 # Ressources

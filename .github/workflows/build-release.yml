@@ -6,7 +6,7 @@ on:
       - published
 
 jobs:
-  build-image:
+  build-web:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,10 +24,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
           push: true
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/dine-map:latest
             ${{ vars.DOCKERHUB_USERNAME }}/dine-map:${{ github.ref_name }}
+
+      - name: Build and push tile-generator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.tiles
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/dine-map-tile-generator:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/dine-map-tile-generator:${{ github.ref_name }}
