@@ -29,5 +29,5 @@ jobs:
         with:
           push: true
           tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/outfitter_web:latest
-            ${{ vars.DOCKERHUB_USERNAME }}/outfitter_web:${{ github.ref_name }}
+            ${{ vars.DOCKERHUB_USERNAME }}/dine-map:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/dine-map:${{ github.ref_name }}
