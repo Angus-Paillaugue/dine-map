@@ -16,7 +16,7 @@
 		"db:create-migration": "bun scripts/db/createMigration.ts"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.4.0",
+		"@eslint/compat": "^2.0.0",
 		"@eslint/js": "^9.38.0",
 		"@internationalized/date": "^3.10.0",
 		"@lucide/svelte": "^0.562.0",
