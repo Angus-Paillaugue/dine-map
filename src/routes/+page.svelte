@@ -38,7 +38,15 @@
 	let mapCenter = $state<Coordinates>([0, 0]);
 	let map = $state<OlMap | null>(null);
 	let viewBox = $state<Viewbox | null>(null);
+	let tileServerStatus = $state<{
+		status: string | null;
+		retry: ReturnType<typeof setTimeout> | null;
+	}>({
+		status: null,
+		retry: null
+	});
 	const BASE_MAP_URL = '/api/tile/{z}/{x}/{y}.png';
+	$inspect(tileServerStatus);
 
 	const updateViewBox = () => {
 		if (!map) return;
@@ -183,7 +191,7 @@
 	<Layer.Tile
 		source="xyz"
 		url={BASE_MAP_URL}
-		attributions={`&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors${page.data.TILE_CUSTOM ? '' : " & <a href='https://carto.com/'>CARTO</a>"}`}
+		attributions="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
 		zIndex={0}
 	/>
 
