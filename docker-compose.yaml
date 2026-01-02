@@ -42,7 +42,7 @@ services:
     volumes:
       - ./tileset:/tileset:Z
 
-  # Serves verctor tiles using MapTiler's tileserver-gl
+  # Serves vector tiles using MapTiler's tileserver-gl
   tileserver:
     image: maptiler/tileserver-gl
     container_name: dine_map_tileserver

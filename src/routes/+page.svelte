@@ -38,15 +38,7 @@
 	let mapCenter = $state<Coordinates>([0, 0]);
 	let map = $state<OlMap | null>(null);
 	let viewBox = $state<Viewbox | null>(null);
-	let tileServerStatus = $state<{
-		status: string | null;
-		retry: ReturnType<typeof setTimeout> | null;
-	}>({
-		status: null,
-		retry: null
-	});
 	const BASE_MAP_URL = '/api/tile/{z}/{x}/{y}.png';
-	$inspect(tileServerStatus);
 
 	const updateViewBox = () => {
 		if (!map) return;

@@ -146,12 +146,3 @@ export const bytesToHumanReadable = (bytes: number): string => {
 
 	return `${(bytes / GIGABYTE).toFixed(0)} GB`;
 };
-
-export async function getTileServerStatus(
-	fetchFunc?: typeof globalThis.fetch
-): Promise<string | null> {
-	const res = await (fetchFunc ? fetchFunc('/api/tile/status') : fetch('/api/tile/status'));
-	if (res.status === 204) return 'OK';
-	const data = await res.json();
-	return data.message;
-}

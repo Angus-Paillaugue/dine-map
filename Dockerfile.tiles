@@ -19,7 +19,7 @@ ENV PATH="/app/openmaptiles-tools/venv/bin:$PATH"
 RUN git clone --depth 1 https://github.com/systemed/tilemaker.git && \
     cd tilemaker && make && make install
 
-    COPY ./tileset ./tileset
+COPY ./tileset ./tileset
 COPY ./scripts/getTiles.sh ./scripts/getTiles.sh
 
 RUN chmod +x ./scripts/getTiles.sh
