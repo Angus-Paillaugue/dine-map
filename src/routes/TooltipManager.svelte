@@ -60,7 +60,7 @@
 		) as Restaurant[]}
 		{#if restaurants.length > 1}
 			<div
-				class="w-[80dvw] max-w-125 space-y-4 overflow-y-auto rounded border border-border bg-card p-4"
+				class="max-h-[80dvh] w-[80dvw] max-w-125 space-y-4 overflow-y-auto rounded border border-border bg-card p-4"
 			>
 				{#each restaurants as { icon, name, id } (id)}
 					<div class="flex flex-row items-center justify-between gap-2 rtl:flex-row-reverse">

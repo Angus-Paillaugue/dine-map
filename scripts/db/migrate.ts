@@ -10,6 +10,9 @@ import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sql } from 'bun';
 
+const initScriptPath = join(HERE, `../sql/migrations/init.sql`);
+await sql.file(initScriptPath);
+
 const getAppliedMigrations = async (): Promise<Set<string>> => {
 	const rows = await sql<{ name: string }[]>`SELECT name FROM migrations`;
 	return new Set(rows.map((row) => row.name));
