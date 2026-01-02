@@ -22,7 +22,7 @@
 		const props = (feature?.getProperties?.() || {}) as Partial<Restaurant>;
 		const emoji = props.icon || '🍔';
 		const name = props.name || 'Unknown';
-		const key = String(emoji);
+		const key = `${emoji}:${name}`;
 
 		if (processedStyles[key]) return processedStyles[key];
 
