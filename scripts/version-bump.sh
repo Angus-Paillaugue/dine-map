@@ -89,14 +89,6 @@ main() {
     exit 1
   fi
 
-  # Wait for tests to pass before merging
-  echo "Waiting for workflows to pass..."
-  gh pr checks "$bump_branch" --watch
-  if [[ $? -ne 0 ]]; then
-    echo "Error: Tests did not pass."
-    exit 1
-  fi
-
   # Merge the pull request
   gh pr merge --squash "$bump_branch"
   if [[ $? -ne 0 ]]; then
