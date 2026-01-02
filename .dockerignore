@@ -18,9 +18,7 @@ tsconfig.json
 components.json
 docker-compose.yaml
 tileset/*
-!tileset/style.json
-!tileset/process-openmaptiles.lua
-!tileset/config-openmaptiles.json
+!tileset/fonts
 .github
 .husky
 build
