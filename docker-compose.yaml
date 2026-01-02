@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    image: anguspllg/dine-map
     container_name: dine_map_web
     restart: unless-stopped
     depends_on:
