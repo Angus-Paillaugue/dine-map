@@ -8,7 +8,6 @@
 	} from '$lib/types';
 	import { onMount } from 'svelte';
 	import { Map as MapComponent, Layer } from 'svelte-openlayers';
-	import TooltipManager from './TooltipManager.svelte';
 	import Search from './Search.svelte';
 	import { dev } from '$app/environment';
 	import Globals from '$lib/globals.svelte';
@@ -23,6 +22,8 @@
 	import Point from 'ol/geom/Point';
 	import { clusterStyle } from '$lib/utils';
 	import Toaster from '$lib/components/Toast';
+	import OlMap from 'ol/Map';
+	import TooltipManager from './TooltipManager.svelte';
 
 	let restaurants = $derived<RestaurantType[]>(page.data.restaurants);
 	let lists = $derived<List[]>(page.data.lists);
@@ -35,11 +36,12 @@
 		return map;
 	});
 	let mapCenter = $state<Coordinates>([0, 0]);
-	let map = $state<any>(null);
+	let map = $state<OlMap | null>(null);
 	let viewBox = $state<Viewbox | null>(null);
 	const BASE_MAP_URL = '/api/tile/{z}/{x}/{y}.png';
 
 	const updateViewBox = () => {
+		if (!map) return;
 		const size = map.getSize();
 		if (!size) return;
 		const extent = map.getView().calculateExtent(size);
@@ -130,6 +132,16 @@
 	$effect(() => {
 		if (clusterSource && restaurantSource) clusterSource.setSource(restaurantSource);
 	});
+
+	function onMapClick(e: any) {
+		if (!map) return;
+		map.forEachFeatureAtPixel(e.pixel, function (feature: any) {
+			const restaurants = feature.get('features');
+			if (!restaurants || restaurants.length !== 1) return;
+			const restaurant = restaurants[0].get('restaurant') as RestaurantType;
+			Globals.restaurantDetailsId = restaurant.id;
+		});
+	}
 </script>
 
 <svelte:head>
@@ -164,7 +176,7 @@
 	/>
 {/if}
 
-<MapComponent.Root class="block h-96 w-full" bind:map>
+<MapComponent.Root class="block h-96 w-full" bind:map onClick={onMapClick}>
 	<MapComponent.View center={mapCenter} onMoveEnd={updateViewBox} maxZoom={22} zoom={14} />
 	<!-- Map tiles -->
 	<!-- ? The attribution text and styling are not default. I do not think that I break any rule listed by OpenStreetMap or Carto (see https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Attribution_text, https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Interactive_maps & https://github.com/CartoDB/basemap-styles?tab=readme-ov-file#1-web-raster-basemaps) but if you have any legal knowledge, please open a PR or discussion about it. -->

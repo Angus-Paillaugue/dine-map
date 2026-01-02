@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
 	import { availableEmojis, type List, type NewList, type Restaurant } from '$lib/types';
-	import { Map, Pen, Plus, Save, Trash, X } from '@lucide/svelte';
+	import { Map, Pen, Plus, Save, Trash, Upload, X } from '@lucide/svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -11,6 +11,7 @@
 	import { cn } from '$lib/utils';
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
+	import FileDropZone from '$lib/components/FileDropZone.svelte';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.toggleList) || null
@@ -21,7 +22,11 @@
 	let isCreatingList = $state(false);
 	let editListId = $state<List['id'] | null>(null);
 	let listDetailsId = $state<List['id'] | null>(null);
-	let deleteListConfirmOpen = $state(false);
+	let uploadFromFile = $state<{
+		open: boolean;
+		processing: boolean;
+		files: File[] | null;
+	}>({ open: false, processing: false, files: null });
 	let deleteListStates = $state<{ processing: boolean; open: boolean; list: List | null }>({
 		processing: false,
 		open: false,
@@ -108,6 +113,7 @@
 	};
 
 	async function saveList() {
+		// TODO: fix restaurants array being passed tin the PUT request
 		const res = await fetch(`/api/list`, {
 			method: 'PUT',
 			headers: {
@@ -161,6 +167,8 @@
 			isCreatingList = false;
 			createListContent = { name: '', description: '' };
 			createListOpen = false;
+			listDetailsId = null;
+			deleteListStates = { processing: false, open: false, list: null };
 		}
 	});
 
@@ -169,6 +177,32 @@
 		if (!target.closest('.listItem') || target.closest('button') || editListId) return;
 
 		listDetailsId = listDetailsId ? null : listId;
+	}
+
+	async function onFileUploadComplete(files: File[]) {
+		if (files.length === 0) return;
+		uploadFromFile.processing = true;
+		uploadFromFile.files = files;
+		const formData = new FormData();
+		for (const file of files) {
+			formData.append('files[]', file);
+		}
+		const res = await fetch('/api/list/import', {
+			method: 'POST',
+			body: formData
+		});
+		const data = await res.json();
+		if (!res.ok) {
+			Toaster.error('Failed to import lists from file');
+			console.error('Failed to import lists from file', data);
+		} else {
+			const { listNames } = data;
+			Toaster.success(`List${listNames.length > 1 ? 's' : ''} imported successfully`);
+			await invalidateAll();
+		}
+		uploadFromFile.processing = false;
+		uploadFromFile.open = false;
+		uploadFromFile.files = null;
 	}
 </script>
 
@@ -187,7 +221,69 @@
 	</div>
 {/snippet}
 
-{#if restaurant || Globals.manageLists}
+{#if uploadFromFile.open}
+	<div
+		class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
+		transition:fade={{ duration: 200 }}
+	></div>
+	<div
+		class="fixed top-1/2 left-1/2 z-40 max-h-dvh w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 rounded border border-border bg-card p-4"
+		transition:scale={{ duration: 200, start: 0.5 }}
+	>
+		<div class="flex flex-row items-center justify-start gap-1">
+			<Upload class="size-6" />
+			<h1 class="text-2xl font-medium">Upload from file</h1>
+		</div>
+		<div class="mt-4 flex flex-col gap-2">
+			<p class="text-sm font-light">
+				Upload your saved lists directly from Google Takeout into Dine Map.
+			</p>
+			<p class="text-sm font-light">
+				To export your data, go to <a
+					href="https://takeout.google.com/"
+					class="rounded-sm bg-primary/10 px-1 py-0.5 font-medium"
+					target="_blank">Google Takeout</a
+				>
+			</p>
+			<p class="text-sm font-light">
+				Only select one checkbox : <span class="rounded-sm bg-primary/10 px-1 py-0.5 font-medium"
+					>"Saved"</span
+				>, then export your data as a zip.
+			</p>
+			<p class="text-sm font-light">
+				It should become available to download in a few minutes. Once exported, you can download it,
+				extract the zip and lok for a directory containing multiple CSV files named after your saved
+				lists.
+			</p>
+			<p class="text-sm font-light">
+				You can directly upload those scv files bellow and we'll do the rest 😉.
+			</p>
+		</div>
+
+		<FileDropZone
+			accept="text/csv"
+			loading={uploadFromFile.processing}
+			class="mt-4 h-36"
+			onUpload={onFileUploadComplete}
+			onFileRejected={({ reason }) => {
+				Toaster.error(`File upload failed: ${reason}`);
+			}}
+		/>
+		<div class="mt-4 flex w-full flex-row items-end justify-end">
+			<Button
+				variant="outline"
+				onclick={() => {
+					uploadFromFile.open = false;
+				}}
+				disabled={uploadFromFile.processing}
+			>
+				Close
+			</Button>
+		</div>
+	</div>
+{/if}
+
+{#if (restaurant || Globals.manageLists) && !uploadFromFile.open}
 	<div
 		class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
@@ -226,6 +322,12 @@
 					</button>
 				{/each}
 			{:else}
+				<div class="mb-6 flex flex-row items-center justify-between">
+					<h1 class="text-xl font-medium">Manage lists</h1>
+					<Button size="icon-sm" onclick={() => (uploadFromFile.open = true)}>
+						<Upload class="size-4" />
+					</Button>
+				</div>
 				{#each lists as list, i (list.id)}
 					{@const isEditingThisList = editListId === list.id}
 					{#if !listDetailsId || listDetailsId === list.id}
@@ -275,6 +377,9 @@
 										>
 											<span class="text-lg font-medium">
 												{list.name}
+												<span class="text-sm text-muted-foreground"
+													>({list.restaurants.length})</span
+												>
 											</span>
 											<span class="line-clamp-1 text-sm font-normal text-muted-foreground">
 												{list.description}
@@ -419,7 +524,6 @@
 					} else {
 						Globals.toggleList = null;
 						Globals.manageLists = false;
-						listDetailsId = null;
 					}
 				}}>{createListOpen || editListId ? 'Cancel' : 'Close'}</Button
 			>
@@ -443,7 +547,7 @@
 		<div class="flex flex-row items-center justify-end gap-2">
 			<Button
 				variant="outline"
-				onclick={() => (deleteListConfirmOpen = false)}
+				onclick={() => (deleteListStates.open = false)}
 				disabled={deleteListStates.processing}>Cancel</Button
 			>
 			<Button

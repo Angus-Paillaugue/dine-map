@@ -21,3 +21,6 @@ tileset/*
 !tileset/style.json
 !tileset/process-openmaptiles.lua
 !tileset/config-openmaptiles.json
+.github
+.husky
+build

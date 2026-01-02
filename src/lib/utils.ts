@@ -133,3 +133,16 @@ export const clusterStyle = (feature: any) => {
 		})
 	});
 };
+
+export const bytesToHumanReadable = (bytes: number): string => {
+	const KILOBYTE = 1000;
+	const MEGABYTE = 1000 * KILOBYTE;
+	const GIGABYTE = 1000 * MEGABYTE;
+	if (bytes < KILOBYTE) return `${bytes.toFixed(0)} B`;
+
+	if (bytes < MEGABYTE) return `${(bytes / KILOBYTE).toFixed(0)} KB`;
+
+	if (bytes < GIGABYTE) return `${(bytes / MEGABYTE).toFixed(0)} MB`;
+
+	return `${(bytes / GIGABYTE).toFixed(0)} GB`;
+};

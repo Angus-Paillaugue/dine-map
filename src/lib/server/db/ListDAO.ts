@@ -121,4 +121,16 @@ export class ListDAO {
 			WHERE id = ${id}
 		 `;
 	}
+
+	static async getListByName(name: List['name']): Promise<List | null> {
+		const [listRow] = await sql<ListTable[]>`
+			SELECT *
+			FROM list
+			WHERE name = ${name}
+		`;
+		if (!listRow) {
+			return null;
+		}
+		return this.getListById(listRow.id);
+	}
 }

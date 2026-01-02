@@ -63,9 +63,10 @@
 
 	$effect(() => {
 		// Rest fields on close
-		if (!restaurant) {
+		if (!Globals.restaurantDetailsId) {
 			newReview.rating = 5;
 			newReview.comment = '';
+			deleteStates = { confirmOpen: false, processing: false };
 			editReview = {
 				id: '',
 				open: false,
