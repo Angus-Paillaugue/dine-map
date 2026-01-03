@@ -19,7 +19,6 @@
 	import { Bookmark, Pen, Plus, Save, Star, Trash2, UtensilsCrossed, X } from '@lucide/svelte';
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
-	import { Input } from '$lib/components/ui/input';
 	import * as InputGroup from '$lib/components/ui/input-group';
 	import { tick } from 'svelte';
 
@@ -209,6 +208,8 @@
 		const newName = editPOIName.name.trim();
 		if (newName && newName !== restaurant?.name) {
 			await updateRestaurant({ name: newName });
+		} else if (!newName && restaurant?.name) {
+			editPOIName.name = restaurant.name;
 		}
 	}
 </script>
@@ -327,6 +328,7 @@
 				</EmojiPicker>
 				<button
 					class="flex grow flex-row items-center gap-2 text-xl font-medium"
+					aria-label="Edit place name"
 					onclick={async () => {
 						if (!editPOIName.open) {
 							editPOIName.name = restaurant.name;
@@ -345,6 +347,11 @@
 								placeholder="The place's name"
 								class="h-8 w-full"
 								onblur={onEditPOINameBlur}
+								onkeydown={(event) => {
+									if (event.key === 'Enter') {
+										onEditPOINameBlur();
+									}
+								}}
 								maxlength={RestaurantNameMaxLength}
 							/>
 							<InputGroup.Addon align="inline-end" class="text-xs"
@@ -352,7 +359,7 @@
 							>
 						</InputGroup.Root>
 					{:else}
-						<h1 class="shrink-0 text-xl font-medium">
+						<h1 class="line-clamp-1 shrink-0 text-xl font-medium">
 							{restaurant.name}
 						</h1>
 					{/if}
