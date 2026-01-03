@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import type { SvelteHTMLElements } from 'svelte/elements';
-	import { availableEmojisData } from '$lib/emoji';
+	import { availableEmojisData, type AvailableEmoji } from '$lib/emoji';
 	import { Button } from '../ui/button';
 	import { fade } from 'svelte/transition';
-	import type { AvailableEmojis } from '$lib/types';
+	import { availableEmojis, type AvailableEmojis } from '$lib/types';
 	import * as InputGroup from '$lib/components/ui/input-group';
 	import { SearchIcon } from '@lucide/svelte';
+	import { go as fuzzySortGo } from 'fuzzysort';
 
 	interface Props {
 		onSelect?: (emoji: AvailableEmojis) => void;
@@ -32,15 +33,20 @@
 			open = false;
 		}
 	}
+	const list = Object.entries(availableEmojisData).map(([emoji, keywords]) => ({
+		emoji,
+		text: (keywords as unknown as string[]).join(' ')
+	}));
 
 	function searchEmojis() {
-		if (searchValue.length === 0) {
-			return Object.keys(availableEmojisData);
-		}
-		return Object.entries(availableEmojisData)
-			.filter(([, name]) => name.includes(searchValue.toLowerCase()))
-			.map(([emoji]) => emoji);
+		if (!searchValue.trim()) return availableEmojis;
+		const results = fuzzySortGo(searchValue, list, { keys: ['text'] });
+		return results.map((r) => r.obj.emoji) as AvailableEmoji[];
 	}
+
+	$effect(() => {
+		if (!open) searchValue = '';
+	});
 </script>
 
 <svelte:window onclick={onWindowClick} />

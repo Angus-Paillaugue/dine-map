@@ -1,5 +1,8 @@
 import z from 'zod';
-import { availableEmojis as availableEmojisList } from './emoji.js';
+import {
+	availableEmojis as availableEmojisList,
+	type AvailableEmoji as AvailableEmojiType
+} from './emoji.js';
 
 export const UUIDZ = z.uuid();
 export type UUID = z.infer<typeof UUIDZ>;
@@ -40,7 +43,7 @@ export const NewRestaurantZ = RestaurantZ.omit({
 });
 export type NewRestaurant = z.infer<typeof NewRestaurantZ>;
 
-export type AvailableEmojis = (typeof availableEmojis)[number];
+export type AvailableEmojis = AvailableEmojiType;
 export const ListZ = z.object({
 	id: UUIDZ,
 	name: z.string().max(20),

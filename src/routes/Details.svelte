@@ -303,7 +303,7 @@
 						<span class="text-xl">{restaurant.icon}</span>
 					</div>
 				</EmojiPicker>
-				<h1 class="shrink-0 text-xl font-medium">
+				<h1 class="line-clamp-1 shrink-0 text-xl font-medium">
 					{restaurant.name}
 				</h1>
 			</div>
