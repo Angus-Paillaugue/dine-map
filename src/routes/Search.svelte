@@ -47,7 +47,7 @@
 	].sort(() => Math.random() - 0.5); // Shuffle
 	let searchPlaceholder = $state<{
 		index: number;
-		timeout: ReturnType<typeof setTimeout> | null;
+		timeout: ReturnType<typeof setInterval> | null;
 	}>({
 		index: 0,
 		timeout: null
@@ -118,7 +118,7 @@
 		associatedPlace: Restaurant | undefined
 	) {
 		open = false;
-		// If we have already rated the search for place, open its details
+		// If we have already rated the searched place, open its details
 		if (associatedPlace) {
 			Globals.restaurantDetailsId = associatedPlace.id;
 		} else {
@@ -161,9 +161,9 @@
 		}
 	}
 
-	const nextPlaceholder = $derived(() => {
+	const nextPlaceholder = () => {
 		return (searchPlaceholder.index + 1) % searchPlaceholders.length;
-	});
+	};
 
 	onMount(() => {
 		searchPlaceholder.timeout = setInterval(() => {
@@ -202,7 +202,7 @@
 				class="pointer-events-none absolute top-0 right-9 bottom-0 left-9 flex flex-col justify-center overflow-hidden"
 				transition:fade={{ duration: 200 }}
 			>
-				<div class="ietms-center flex w-full flex-row">
+				<div class="flex w-full flex-row items-center">
 					<span class="text-sm text-muted-foreground">Search for</span>
 					<div class="relative">
 						{#each searchPlaceholders as p, i (p)}

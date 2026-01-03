@@ -293,6 +293,7 @@
 
 <!-- Trigger -->
 <button
+	aria-label="Manage your saved lists"
 	class="absolute top-2 right-2 z-10 size-10 rounded-[40%] bg-secondary p-2 backdrop-blur-xs transition-all"
 	onclick={() => {
 		if (Globals.mapFilterList.length > 0) {

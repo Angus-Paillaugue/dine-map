@@ -27,9 +27,6 @@ export const NewReviewZ = ReviewZ.omit({ id: true, date: true });
 export type NewReview = z.infer<typeof NewReviewZ>;
 
 export const RestaurantNameMaxLength = 30;
-export interface MapCtx {
-	resetMapView: () => void;
-}
 export const RestaurantZ = z.object({
 	id: UUIDZ,
 	name: z.string().max(RestaurantNameMaxLength),
