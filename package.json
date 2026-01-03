@@ -47,6 +47,7 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
+		"fuzzysort": "^3.1.0",
 		"ol": "^10.7.0",
 		"svelte-adapter-bun": "^1.0.1",
 		"svelte-openlayers": "^1.6.0",
