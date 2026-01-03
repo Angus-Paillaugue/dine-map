@@ -12,10 +12,10 @@ export const availableEmojisData = {
 	'🍾': ['champagne', 'bottle', 'celebration', 'pop', 'toast'],
 	'🍞': ['bread', 'loaf', 'toast', 'sandwich', 'bakery'],
 	'🥦': ['broccoli', 'vegetable', 'green', 'healthy', 'crunchy'],
-	'🧋': ['bubble', 'tea', 'boba', 'tea', 'drink', 'pearl'],
+	'🧋': ['bubble', 'tea', 'boba', 'drink', 'pearl'],
 	'🌯': ['burrito', 'tortilla', 'wrap', 'mexican', 'filled'],
 	'🍬': ['candy', 'sweets', 'chewy', 'lollipop', 'treat'],
-	'🥫': ['canned', 'canned', 'food', 'preserved', 'beans', 'soup'],
+	'🥫': ['canned', 'food', 'preserved', 'beans', 'soup'],
 	'🧀': ['cheese', 'dairy', 'slice', 'melty', 'spread'],
 	'🍫': ['chocolate', 'bar', 'cocoa', 'dessert', 'sweet'],
 	'🥢': ['chopsticks', 'utensils', 'asian', 'eating', 'stick'],
@@ -41,9 +41,9 @@ export const availableEmojisData = {
 	'🫓': ['flatbread', 'wrap', 'naan', 'tortilla', 'bread'],
 	'🫕': ['fondue', 'cheese', 'communal', 'dip', 'melting'],
 	'🍽️': ['plate', 'cutlery', 'meal', 'tableware', 'dining'],
-	'🥠': ['fortune', 'cookie', 'fortune', 'crispy', 'asian', 'dessert'],
-	'🍟': ['fries', 'french', 'fries', 'potato', 'snack', 'fast', 'food'],
-	'🍤': ['fried', 'shrimp', 'shrimp', 'seafood', 'tempura', 'fried'],
+	'🥠': ['fortune', 'cookie', 'crispy', 'asian', 'dessert'],
+	'🍟': ['fries', 'french', 'potato', 'snack', 'fast', 'food'],
+	'🍤': ['fried', 'shrimp', 'seafood', 'tempura', 'fried'],
 	'🥛': ['milk', 'drink', 'dairy', 'glass', 'calcium'],
 	'🍏': ['apple', 'green', 'fruit', 'tart', 'healthy'],
 	'🥗': ['salad', 'green', 'healthy', 'veggies', 'side'],
@@ -54,7 +54,7 @@ export const availableEmojisData = {
 	'🧊': ['ice', 'cold', 'cubes', 'drink', 'chill'],
 	'🍨': ['ice', 'cream', 'sundae', 'frozen', 'dessert', 'scoop'],
 	'🫙': ['jar', 'preserve', 'storage', 'glass', 'container'],
-	'🥬': ['leafy', 'green', 'lettuce', 'green', 'veg', 'salad'],
+	'🥬': ['leafy', 'green', 'lettuce', 'veg', 'salad'],
 	'🍋': ['lemon', 'citrus', 'tart', 'zest', 'fruit'],
 	'🍭': ['lollipop', 'candy', 'sweets', 'stick', 'colorful'],
 	'🥭': ['mango', 'tropical', 'fruit', 'juicy', 'ripe'],
@@ -98,3 +98,8 @@ export const availableEmojisData = {
 
 export type AvailableEmoji = keyof typeof availableEmojisData;
 export const availableEmojis = Object.keys(availableEmojisData) as AvailableEmoji[];
+
+export const emojiSearchList = Object.entries(availableEmojisData).map(([emoji, keywords]) => ({
+	emoji,
+	text: (keywords as readonly string[]).join(' ')
+}));

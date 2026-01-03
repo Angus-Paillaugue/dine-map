@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import type { SvelteHTMLElements } from 'svelte/elements';
-	import { availableEmojisData, type AvailableEmoji } from '$lib/emoji';
+	import { emojiSearchList, type AvailableEmoji } from '$lib/emoji';
 	import { Button } from '../ui/button';
 	import { fade } from 'svelte/transition';
 	import { availableEmojis, type AvailableEmojis } from '$lib/types';
@@ -33,14 +33,10 @@
 			open = false;
 		}
 	}
-	const list = Object.entries(availableEmojisData).map(([emoji, keywords]) => ({
-		emoji,
-		text: (keywords as unknown as string[]).join(' ')
-	}));
 
 	function searchEmojis() {
 		if (!searchValue.trim()) return availableEmojis;
-		const results = fuzzySortGo(searchValue, list, { keys: ['text'] });
+		const results = fuzzySortGo(searchValue, emojiSearchList, { keys: ['text'] });
 		return results.map((r) => r.obj.emoji) as AvailableEmoji[];
 	}
 
