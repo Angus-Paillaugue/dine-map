@@ -86,6 +86,10 @@
 		overscroll-behavior: none;
 		@apply bg-background text-foreground;
 	}
+	html,
+	body {
+		touch-action: manipulation;
+	}
 
 	.ol-attribution {
 		@apply !right-auto !left-0 !rounded-tr-lg !bg-card !text-foreground;
