@@ -2,7 +2,13 @@
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
-	import type { List, NewReview, Restaurant, Review } from '$lib/types';
+	import {
+		RestaurantNameMaxLength,
+		type List,
+		type NewReview,
+		type Restaurant,
+		type Review
+	} from '$lib/types';
 	import { fade, scale, slide } from 'svelte/transition';
 	import * as Field from '$lib/components/ui/field';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -13,6 +19,8 @@
 	import { Bookmark, Pen, Plus, Save, Star, Trash2, UtensilsCrossed, X } from '@lucide/svelte';
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
+	import * as InputGroup from '$lib/components/ui/input-group';
+	import { tick } from 'svelte';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.restaurantDetailsId) ||
@@ -33,6 +41,11 @@
 	let editReview = $state({ id: '', open: false, fields: { rating: 5, comment: '' } });
 	let isCreatingReview = $state(false);
 	let deleteStates = $state({ confirmOpen: false, processing: false });
+	let editPOIName = $state<{
+		name: string;
+		open: boolean;
+		input: HTMLInputElement | null;
+	}>({ name: '', open: false, input: null });
 
 	$effect(() => {
 		if (restaurant) {
@@ -189,6 +202,16 @@
 			}
 		};
 	}
+
+	async function onEditPOINameBlur() {
+		editPOIName.open = false;
+		const newName = editPOIName.name.trim();
+		if (newName && newName !== restaurant?.name) {
+			await updateRestaurant({ name: newName });
+		} else if (!newName && restaurant?.name) {
+			editPOIName.name = restaurant.name;
+		}
+	}
 </script>
 
 <svelte:window
@@ -289,8 +312,8 @@
 		class="fixed inset-0 z-40 flex flex-col gap-4 bg-background p-2"
 		transition:slide={{ axis: 'y', duration: 400 }}
 	>
-		<div class="flex flex-row items-center justify-between">
-			<div class="flex flex-row gap-2">
+		<div class="flex flex-row items-center justify-between gap-2">
+			<div class="flex grow flex-row gap-2">
 				<EmojiPicker
 					onSelect={(emoji) => {
 						updateRestaurant({ icon: emoji });
@@ -303,9 +326,44 @@
 						<span class="text-xl">{restaurant.icon}</span>
 					</div>
 				</EmojiPicker>
-				<h1 class="line-clamp-1 shrink-0 text-xl font-medium">
-					{restaurant.name}
-				</h1>
+				<button
+					class="flex grow flex-row items-center gap-2 text-xl font-medium"
+					aria-label="Edit place name"
+					onclick={async () => {
+						if (!editPOIName.open) {
+							editPOIName.name = restaurant.name;
+							editPOIName.open = true;
+							await tick();
+							editPOIName.input?.focus();
+							editPOIName.input?.select();
+						}
+					}}
+				>
+					{#if editPOIName.open}
+						<InputGroup.Root>
+							<InputGroup.Input
+								bind:ref={editPOIName.input}
+								bind:value={editPOIName.name}
+								placeholder="The place's name"
+								class="h-8 w-full"
+								onblur={onEditPOINameBlur}
+								onkeydown={(event) => {
+									if (event.key === 'Enter') {
+										onEditPOINameBlur();
+									}
+								}}
+								maxlength={RestaurantNameMaxLength}
+							/>
+							<InputGroup.Addon align="inline-end" class="text-xs"
+								>{editPOIName.name.length}/{RestaurantNameMaxLength}</InputGroup.Addon
+							>
+						</InputGroup.Root>
+					{:else}
+						<h1 class="line-clamp-1 shrink-0 text-xl font-medium">
+							{restaurant.name}
+						</h1>
+					{/if}
+				</button>
 			</div>
 			<Rating rating={restaurant.rating} compact={true} />
 		</div>

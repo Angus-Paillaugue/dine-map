@@ -26,7 +26,7 @@
 
 {#if compact}
 	{@const partiallyFilledPercentage = Math.min(Math.max(rating, 0), 5) * 20}
-	<div class="inline-flex flex-row gap-1" {...restProps}>
+	<div class="inline-flex flex-row items-center gap-1" {...restProps}>
 		{#if showStars}
 			<div class="relative size-4">
 				<Star class="size-full" style="stroke: {emptyColor}; fill: {emptyColor};" />
