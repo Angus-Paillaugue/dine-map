@@ -1,4 +1,4 @@
-import type { Coordinates } from '$lib/types';
+import { RestaurantNameMaxLength, type Coordinates } from '$lib/types';
 import path from 'node:path';
 import { ListDAO } from './db/ListDAO';
 import { RestaurantDAO } from './db/RestaurantDAO';
@@ -27,7 +27,7 @@ async function extractFromCSVContents(CSVContent: string) {
 		if (redirectUrl) {
 			const lat = parseFloat(redirectUrl[1]);
 			const lng = parseFloat(redirectUrl[2]);
-			result.push({ name: title, coordinates: [lat, lng] });
+			result.push({ name: title.slice(0, RestaurantNameMaxLength), coordinates: [lat, lng] });
 		}
 	}
 

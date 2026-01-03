@@ -212,10 +212,8 @@
 	>
 		<span class="text-2xl">{icon}</span>
 		{#if isRestaurantInList(id) && !isEditing}
-			<div
-				class="absolute inset-0 flex flex-col items-center justify-center bg-card text-destructive opacity-50"
-			>
-				<X class="size-6" />
+			<div class="absolute inset-0 flex flex-col items-center justify-center bg-card/70">
+				<X class="size-6 text-destructive" />
 			</div>
 		{/if}
 	</div>

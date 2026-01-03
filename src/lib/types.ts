@@ -23,9 +23,10 @@ export type Review = z.infer<typeof ReviewZ>;
 export const NewReviewZ = ReviewZ.omit({ id: true, date: true });
 export type NewReview = z.infer<typeof NewReviewZ>;
 
+export const RestaurantNameMaxLength = 30;
 export const RestaurantZ = z.object({
 	id: UUIDZ,
-	name: z.string(),
+	name: z.string().max(RestaurantNameMaxLength),
 	coordinates: CoordinatesZ,
 	rating: z.number().min(0).max(5),
 	reviews: z.array(z.lazy(() => ReviewZ)),
