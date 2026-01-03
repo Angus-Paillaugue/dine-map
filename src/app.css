@@ -64,10 +64,6 @@
 
 @layer base {
 	* {
-		--ol-color-primary: var(--primary);
-		--ol-zoom-button-bg: var(--primary);
-		--ol-zoom-button-color: var(--background);
-		--ol-radius: var(--radius-sm);
 		@apply scroll-smooth border-border outline-ring/50;
 	}
 
@@ -92,6 +88,6 @@
 	}
 
 	.ol-attribution {
-		@apply !right-auto !left-0 !rounded-tr-lg !bg-card !text-foreground;
+		@apply !top-0 !right-auto !bottom-auto !left-0 !rounded-br-lg !bg-card !text-foreground;
 	}
 }

@@ -309,7 +309,7 @@
 
 {#if restaurant}
 	<div
-		class="fixed inset-0 z-40 flex flex-col gap-4 bg-background p-2"
+		class="fixed inset-0 z-20 flex flex-col gap-4 bg-background p-2"
 		transition:slide={{ axis: 'y', duration: 400 }}
 	>
 		<div class="flex flex-row items-center justify-between gap-2">
@@ -359,7 +359,7 @@
 							>
 						</InputGroup.Root>
 					{:else}
-						<h1 class="line-clamp-1 shrink-0 text-xl font-medium">
+						<h1 class="line-clamp-1 w-full shrink-0 text-start text-xl font-medium">
 							{restaurant.name}
 						</h1>
 					{/if}
@@ -440,14 +440,14 @@
 			</Button>
 		</div>
 	</div>
-	<!-- New review modal -->
+	<!-- New review dialog -->
 	{#if reviewOpen}
 		<div
-			class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
+			class="fixed inset-0 z-20 bg-background/50 backdrop-blur-xs"
 			transition:fade={{ duration: 200 }}
 		></div>
 		<div
-			class="fixed top-1/2 left-1/2 z-40 w-[90%] max-w-150 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
+			class="fixed top-1/2 left-1/2 z-20 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
 			transition:scale={{ duration: 200, start: 0.5 }}
 		>
 			<h2 class="text-xl font-medium">New review for {restaurant.name}</h2>
@@ -464,6 +464,7 @@
 					<Field.Label for="newReviewComment">Comment</Field.Label>
 					<Textarea
 						bind:value={newReview.comment}
+						autoFit={{ active: true, minRows: 3, maxRows: 10 }}
 						id="newReviewComment"
 						placeholder="Your comment on the place"
 						class="resize-none"
@@ -486,14 +487,14 @@
 	{/if}
 {/if}
 
-<!-- Delete POI confirm modal -->
+<!-- Delete POI confirm dialog -->
 {#if deleteStates.confirmOpen && restaurant}
 	<div
-		class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
+		class="fixed inset-0 z-20 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
 	></div>
 	<div
-		class="fixed top-1/2 left-1/2 z-40 w-[90%] max-w-150 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
+		class="fixed top-1/2 left-1/2 z-20 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
 		transition:scale={{ duration: 200, start: 0.5 }}
 	>
 		<h2 class="text-xl font-medium">Delete {restaurant.name}</h2>

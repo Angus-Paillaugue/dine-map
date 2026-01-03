@@ -1,11 +1,11 @@
-import type { List, Restaurant } from './types';
+import type { List, Restaurant, Viewbox } from './types';
 
 class GlobalsClass {
-	searchOpen = $state(false);
 	restaurantDetailsId = $state<Restaurant['id'] | null>(null);
 	toggleList = $state<Restaurant['id'] | null>(null);
 	manageLists = $state(false);
 	mapFilterList = $state<List['id'][]>([]);
+	viewBox = $state<Viewbox | null>(null);
 }
 
 const Globals = new GlobalsClass();

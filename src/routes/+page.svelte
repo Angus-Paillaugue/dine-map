@@ -1,18 +1,8 @@
 <script lang="ts">
-	import {
-		type Coordinates,
-		type List,
-		type NewRestaurant,
-		type Restaurant as RestaurantType,
-		type Viewbox
-	} from '$lib/types';
-	import { onMount } from 'svelte';
+	import { MapCtxKey, type List, type MapCtx, type Restaurant as RestaurantType } from '$lib/types';
 	import { Map as MapComponent, Layer } from 'svelte-openlayers';
-	import Search from './Search.svelte';
-	import { dev } from '$app/environment';
 	import Globals from '$lib/globals.svelte';
 	import Details from './Details.svelte';
-	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { fromLonLat, toLonLat } from 'ol/proj';
 	import ManageList from './ManageList.svelte';
@@ -21,9 +11,11 @@
 	import OlFeature from 'ol/Feature';
 	import Point from 'ol/geom/Point';
 	import { clusterStyle } from '$lib/utils';
-	import Toaster from '$lib/components/Toast';
 	import OlMap from 'ol/Map';
 	import TooltipManager from './TooltipManager.svelte';
+	import Search from './Search.svelte';
+	import { onMount, tick } from 'svelte';
+	import { setContext } from 'svelte';
 
 	let restaurants = $derived<RestaurantType[]>(page.data.restaurants);
 	let lists = $derived<List[]>(page.data.lists);
@@ -35,9 +27,7 @@
 		}
 		return map;
 	});
-	let mapCenter = $state<Coordinates>([0, 0]);
 	let map = $state<OlMap | null>(null);
-	let viewBox = $state<Viewbox | null>(null);
 	const BASE_MAP_URL = '/api/tile/{z}/{x}/{y}.png';
 
 	const updateViewBox = () => {
@@ -47,58 +37,8 @@
 		const extent = map.getView().calculateExtent(size);
 		const [minLon, minLat] = toLonLat([extent[0], extent[1]]);
 		const [maxLon, maxLat] = toLonLat([extent[2], extent[3]]);
-		viewBox = [minLon, minLat, maxLon, maxLat];
+		Globals.viewBox = [minLon, minLat, maxLon, maxLat];
 	};
-
-	async function getUserLocation(): Promise<Coordinates | null> {
-		if (navigator.geolocation) {
-			return new Promise((resolve) => {
-				navigator.geolocation.getCurrentPosition(
-					(position) => {
-						const coords: Coordinates = [position.coords.longitude, position.coords.latitude];
-						resolve(coords);
-					},
-					(error) => {
-						console.error('Error getting location:', error);
-						resolve(null);
-					}
-				);
-			});
-		} else {
-			console.error('Geolocation is not supported by this browser.');
-			return null;
-		}
-	}
-
-	async function createRestaurant(restaurant: NewRestaurant) {
-		const response = await fetch('/api/restaurant', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(restaurant)
-		});
-
-		if (!response.ok) {
-			throw new Error('Failed to create restaurant');
-		}
-
-		const newRestaurant: RestaurantType = await response.json();
-		return newRestaurant;
-	}
-
-	onMount(() => {
-		// This has been done because Firefox thinks I am in Paris when I am not
-		if (dev) {
-			mapCenter = restaurants[0]?.coordinates || [0, 0];
-		} else {
-			getUserLocation().then((coords) => {
-				if (coords) {
-					mapCenter = coords;
-				}
-			});
-		}
-	});
 
 	let restaurantSource = $derived.by(() => {
 		let filteredRestaurants = [];
@@ -122,15 +62,32 @@
 
 	let clusterSource = $state(
 		new Cluster({
-			distance: 50, // 50 px since each POI icon is 40x40 and there is the text on top of it, so to be safe, we say 50px
-			// svelte-ignore state_referenced_locally
-			source: restaurantSource
+			distance: 50 // 50 px since each POI icon is 40x40 and there is the text on top of it, so to be safe, we say 50px
 		})
 	);
 
-	// Apply it in an effect because in a derived, it does not reflect the changes on the rendered source
+	function focusOnCurrentSource(maxZoom: number = 19) {
+		if (!map || !restaurantSource) return;
+		const extent = restaurantSource.getExtent();
+		if (extent.every(Number.isFinite)) {
+			map.getView().fit(extent, { padding: [50, 50, 50, 50], duration: 500, maxZoom });
+		}
+	}
+
+	async function resetMapView() {
+		await tick();
+		focusOnCurrentSource();
+	}
+
+	// Apply source in an effect because in a derived, it does not reflect the changes on the rendered source
 	$effect(() => {
-		if (clusterSource && restaurantSource) clusterSource.setSource(restaurantSource);
+		if (clusterSource && restaurantSource) {
+			clusterSource.setSource(restaurantSource);
+		}
+	});
+
+	onMount(() => {
+		resetMapView();
 	});
 
 	function onMapClick(e: any) {
@@ -142,42 +99,16 @@
 			Globals.restaurantDetailsId = restaurant.id;
 		});
 	}
+
+	setContext(MapCtxKey, { resetMapView } as MapCtx);
 </script>
 
 <svelte:head>
 	<title>Dine Map</title>
 </svelte:head>
 
-{#if viewBox}
-	<Search
-		bind:viewBox
-		bind:open={Globals.searchOpen}
-		onResultSelect={(searchResult, associatedPlace) => {
-			Globals.searchOpen = false;
-			// If we have already rated the search for place, open its details
-			if (associatedPlace) {
-				Globals.restaurantDetailsId = associatedPlace.id;
-			} else {
-				// Otherwise we create it
-				createRestaurant({
-					name: searchResult.name,
-					coordinates: searchResult.coordinates
-				})
-					.then(async (newRestaurant) => {
-						await invalidateAll();
-						Globals.restaurantDetailsId = newRestaurant.id;
-					})
-					.catch((error) => {
-						Toaster.error('Error creating restaurant');
-						console.error('Error creating restaurant:', error);
-					});
-			}
-		}}
-	/>
-{/if}
-
-<MapComponent.Root class="block h-96 w-full" bind:map onClick={onMapClick}>
-	<MapComponent.View center={mapCenter} onMoveEnd={updateViewBox} maxZoom={22} zoom={14} />
+<MapComponent.Root class="block h-96 w-full" bind:map onClick={onMapClick} zoomControl={false}>
+	<MapComponent.View onMoveEnd={updateViewBox} maxZoom={22} zoom={14} />
 	<!-- Map tiles -->
 	<!-- ? The attribution text and styling are not default. I do not think that I break any rule listed by OpenStreetMap or Carto (see https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Attribution_text, https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Interactive_maps & https://github.com/CartoDB/basemap-styles?tab=readme-ov-file#1-web-raster-basemaps) but if you have any legal knowledge, please open a PR or discussion about it. -->
 	<Layer.Tile
@@ -194,7 +125,11 @@
 	<TooltipManager />
 </MapComponent.Root>
 
-<!-- Restaurant details (CRUD) modal -->
+<!-- Search input -->
+<Search />
+
+<!-- Restaurant details (CRUD) dialog -->
 <Details />
 
+<!-- Bookmark (list) manager -->
 <ManageList />

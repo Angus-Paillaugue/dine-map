@@ -1,73 +1,23 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import Globals from '$lib/globals.svelte';
-	import { Bookmark, SearchIcon, X } from '@lucide/svelte';
-	import { cn } from '$lib/utils';
-	import { scale } from 'svelte/transition';
 	import Toaster from '$lib/components/Toast';
 
 	let { children } = $props();
-
-	function onWindowKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && Globals.searchOpen) {
-			Globals.searchOpen = false;
-		}
-	}
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<svelte:window onkeydown={onWindowKeydown} />
-
 <Toaster.Toaster />
 
 <div class="flex h-dvh w-dvw flex-col">
 	<div class="grow p-2">
-		<div class="relative h-full w-full overflow-hidden rounded shadow">
+		<div class="relative h-full w-full overflow-hidden rounded bg-card/50 shadow">
 			<div class="relative h-full w-full overflow-auto">
 				{@render children()}
 			</div>
-			<button
-				class={cn(
-					'absolute right-2 bottom-2 z-20 size-10 rounded-full p-2 transition-all',
-					Globals.searchOpen ? 'bg-secondary' : 'bg-secondary/50 backdrop-blur-xs'
-				)}
-				onclick={() => (Globals.searchOpen = !Globals.searchOpen)}
-			>
-				{#if Globals.searchOpen}
-					<div class="size-full" in:scale={{ duration: 200 }}>
-						<X class="size-full" />
-					</div>
-				{:else}
-					<div class="size-full" in:scale={{ duration: 200 }}>
-						<SearchIcon class="size-full" />
-					</div>
-				{/if}
-			</button>
-
-			<button
-				class="absolute right-2 bottom-14 z-20 size-10 rounded-full bg-secondary/50 p-2 backdrop-blur-xs transition-all"
-				onclick={() => {
-					if (Globals.mapFilterList.length > 0) {
-						Globals.mapFilterList = [];
-					} else {
-						Globals.manageLists = !Globals.manageLists;
-					}
-				}}
-			>
-				{#if Globals.manageLists || Globals.mapFilterList.length > 0}
-					<div class="size-full" in:scale={{ duration: 200 }}>
-						<X class="size-full" />
-					</div>
-				{:else}
-					<div class="size-full" in:scale={{ duration: 200 }}>
-						<Bookmark class="size-full" />
-					</div>
-				{/if}
-			</button>
 		</div>
 	</div>
 </div>

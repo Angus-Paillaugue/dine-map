@@ -2,8 +2,15 @@
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
-	import { availableEmojis, type List, type NewList, type Restaurant } from '$lib/types';
-	import { Map, Pen, Plus, Save, Trash, Upload, X } from '@lucide/svelte';
+	import {
+		availableEmojis,
+		type MapCtx,
+		MapCtxKey,
+		type List,
+		type NewList,
+		type Restaurant
+	} from '$lib/types';
+	import { Bookmark, Map, Pen, Plus, Save, Trash, Upload, X } from '@lucide/svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -12,6 +19,8 @@
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
 	import FileDropZone from '$lib/components/FileDropZone.svelte';
+	import { getContext } from 'svelte';
+	import { linear } from 'svelte/easing';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.toggleList) || null
@@ -37,6 +46,7 @@
 		description: '',
 		icon: availableEmojis[0]
 	});
+	const mapCtx = getContext<MapCtx>(MapCtxKey);
 
 	async function createList() {
 		isCreatingList = true;
@@ -221,11 +231,11 @@
 
 {#if uploadFromFile.open}
 	<div
-		class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
+		class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
 	></div>
 	<div
-		class="fixed top-1/2 left-1/2 z-40 max-h-dvh w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 rounded border border-border bg-card p-4"
+		class="fixed top-1/2 left-1/2 z-30 max-h-dvh w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded border border-border bg-card p-4"
 		transition:scale={{ duration: 200, start: 0.5 }}
 	>
 		<div class="flex flex-row items-center justify-start gap-1">
@@ -281,24 +291,53 @@
 	</div>
 {/if}
 
+<!-- Trigger -->
+<button
+	class="absolute top-2 right-2 z-10 size-10 rounded-[40%] bg-secondary p-2 backdrop-blur-xs transition-all"
+	onclick={() => {
+		if (Globals.mapFilterList.length > 0) {
+			Globals.mapFilterList = [];
+			mapCtx.resetMapView();
+		} else {
+			Globals.manageLists = !Globals.manageLists;
+		}
+	}}
+>
+	{#if Globals.mapFilterList.length > 0}
+		<div class="size-full" in:scale={{ duration: 200 }}>
+			<X class="size-full" />
+		</div>
+	{:else}
+		<div class="size-full" in:scale={{ duration: 200 }}>
+			<Bookmark class="size-full" />
+		</div>
+	{/if}
+</button>
+
 {#if (restaurant || Globals.manageLists) && !uploadFromFile.open}
+	<!-- Backdrop -->
 	<div
-		class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
+		class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
 	></div>
+	<!-- Main dialog -->
 	<div
-		class="fixed top-1/2 left-1/2 z-40 max-h-dvh w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
+		class="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 flex-col rounded border border-border bg-card p-4"
 		transition:scale={{ duration: 200, start: 0.5 }}
 	>
 		{#if restaurant}
 			<h2 class="text-xl font-medium">Save {restaurant.name}</h2>
 		{/if}
-		<div
-			class={cn(
-				'flex flex-col transition-all duration-300',
-				createListOpen && 'pointer-events-none blur-xs'
-			)}
-		>
+		{#if !restaurant}
+			<!-- Header -->
+			<div class="flex flex-row items-center justify-between">
+				<h1 class="text-xl font-medium">Manage lists</h1>
+				<Button size="icon-sm" onclick={() => (uploadFromFile.open = true)}>
+					<Upload class="size-4" />
+				</Button>
+			</div>
+		{/if}
+		<div class={cn('flex min-h-0 flex-1 flex-col overflow-y-auto')}>
 			{#if restaurant}
 				{#each lists as list, i (list.id)}
 					<button
@@ -320,152 +359,148 @@
 					</button>
 				{/each}
 			{:else}
-				<div class="mb-6 flex flex-row items-center justify-between">
-					<h1 class="text-xl font-medium">Manage lists</h1>
-					<Button size="icon-sm" onclick={() => (uploadFromFile.open = true)}>
-						<Upload class="size-4" />
-					</Button>
-				</div>
-				{#each lists as list, i (list.id)}
+				{#each lists as list (list.id)}
 					{@const isEditingThisList = editListId === list.id}
-					{#if !listDetailsId || listDetailsId === list.id}
+					<div
+						class={cn(
+							'flex flex-col p-2 transition-all duration-300',
+							(createListOpen || (listDetailsId && listDetailsId !== list.id)) &&
+								'pointer-events-none blur-xs'
+						)}
+					>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<div
-							class={cn('flex flex-col', i !== 0 && 'mt-2')}
-							transition:slide={{ duration: 300, axis: 'y' }}
+							onclick={(e) => onListItemClick(e, list.id)}
+							tabindex={0}
+							role="button"
+							class={cn(
+								'listItem flex flex-row items-center justify-start gap-2 text-start transition-all',
+								editListId && !isEditingThisList && 'pointer-events-none blur-xs'
+							)}
 						>
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<div
-								onclick={(e) => onListItemClick(e, list.id)}
-								tabindex={0}
-								role="button"
-								class={cn(
-									'listItem flex flex-row items-center justify-start gap-2 text-start transition-all',
-									editListId && !isEditingThisList && 'pointer-events-none blur-xs'
-								)}
-							>
-								{#if isEditingThisList}
-									<EmojiPicker
-										class="shrink-0"
-										selectedEmoji={editedList.icon}
-										onSelect={(emoji) => {
-											editedList.icon = emoji;
-										}}
-									>
-										{@render listIcon(editedList.icon, list.id, isEditingThisList)}
-									</EmojiPicker>
-								{:else}
-									{@render listIcon(list.icon, list.id, isEditingThisList)}
-								{/if}
-								<div class="relative h-full grow">
-									{#if isEditingThisList}
-										<div class="flex flex-col gap-1" transition:slide={{ axis: 'y' }}>
-											<Input bind:value={editedList.name} placeholder="Name" />
-											<Textarea
-												id="newListDescription"
-												bind:value={editedList.description}
-												placeholder="Description"
-												class="resize-none"
-												autoFit={{ active: true, maxRows: 4 }}
-											/>
-										</div>
-									{:else}
-										<div
-											class="absolute top-1/2 right-0 left-0 flex -translate-y-1/2 flex-col"
-											in:slide={{ axis: 'y' }}
-										>
-											<span class="text-lg font-medium">
-												{list.name}
-												<span class="text-sm text-muted-foreground"
-													>({list.restaurants.length})</span
-												>
-											</span>
-											<span class="line-clamp-1 text-sm font-normal text-muted-foreground">
-												{list.description}
-											</span>
-										</div>
-									{/if}
-								</div>
-
-								<div class="flex flex-col">
-									<Button
-										class="shrink-0"
-										size="icon-sm"
-										onclick={() => {
-											listDetailsId = null;
-											if (isEditingThisList) {
-												saveList();
-											} else {
-												editListId = list.id;
-											}
-										}}
-									>
-										{#if isEditingThisList}
-											<div class="size-4" in:scale={{ duration: 200 }}>
-												<Save class="size-full" />
-											</div>
-										{:else}
-											<div class="size-4" in:scale={{ duration: 200 }}>
-												<Pen class="size-full" />
-											</div>
-										{/if}
-									</Button>
-									{#if editListId === list.id}
-										<div class="mt-2 shrink-0" transition:slide={{ axis: 'y' }}>
-											<Button
-												variant="destructive"
-												size="icon-sm"
-												onclick={() =>
-													(deleteListStates = { ...deleteListStates, open: true, list })}
-											>
-												<Trash class="size-4" />
-											</Button>
-										</div>
-									{/if}
-								</div>
-							</div>
-							<!-- List of restaurants details -->
-							{#if listDetailsId === list.id}
-								<div
-									class="mt-2 flex max-h-[60dvh] flex-col gap-2 overflow-y-auto"
-									transition:slide={{ duration: 300, axis: 'y' }}
+							{#if isEditingThisList}
+								<EmojiPicker
+									class="shrink-0"
+									selectedEmoji={editedList.icon}
+									onSelect={(emoji) => {
+										editedList.icon = emoji;
+									}}
 								>
-									{#each list.restaurants as restaurant (restaurant.id)}
-										<div
-											class="flex flex-row justify-between rounded border border-border p-2"
-											transition:slide={{ duration: 200, axis: 'y' }}
-										>
-											<div class="flex flex-row items-center gap-2">
-												<span class="text-lg">{restaurant.icon}</span>
-												<p class="line-clamp-1 text-lg font-medium">
-													{restaurant.name}
-												</p>
-											</div>
-											<Button
-												variant="destructive"
-												size="icon-sm"
-												onclick={() => removeFromList(list.id, restaurant.id)}
-											>
-												<Trash class="size-4" />
-											</Button>
-										</div>
-									{:else}
-										<div
-											class="text-sm text-muted-foreground"
-											in:slide={{ duration: 200, axis: 'y', delay: 200 }}
-											out:slide={{ duration: 200, axis: 'y' }}
-										>
-											No restaurants in this list.
-										</div>
-									{/each}
-								</div>
+									{@render listIcon(editedList.icon, list.id, isEditingThisList)}
+								</EmojiPicker>
+							{:else}
+								{@render listIcon(list.icon, list.id, isEditingThisList)}
 							{/if}
+							<div class="relative h-full grow">
+								{#if isEditingThisList}
+									<div class="flex flex-col gap-1" transition:slide={{ axis: 'y' }}>
+										<Input bind:value={editedList.name} placeholder="Name" />
+										<Textarea
+											id="newListDescription"
+											bind:value={editedList.description}
+											placeholder="Description"
+											class="resize-none"
+											autoFit={{ active: true, maxRows: 4 }}
+										/>
+									</div>
+								{:else}
+									<div
+										class="absolute top-1/2 right-0 left-0 flex -translate-y-1/2 flex-col"
+										in:slide={{ axis: 'y' }}
+									>
+										<span class="text-lg font-medium">
+											{list.name}
+											<span class="text-sm text-muted-foreground">({list.restaurants.length})</span>
+										</span>
+										<span class="line-clamp-1 text-sm font-normal text-muted-foreground">
+											{list.description}
+										</span>
+									</div>
+								{/if}
+							</div>
+
+							<div class="flex flex-col">
+								{#if listDetailsId !== list.id}
+									<div transition:slide={{ axis: 'x', duration: 200 }}>
+										<Button
+											class="shrink-0"
+											size="icon-sm"
+											onclick={() => {
+												listDetailsId = null;
+												if (isEditingThisList) {
+													saveList();
+												} else {
+													editListId = list.id;
+												}
+											}}
+										>
+											{#if isEditingThisList}
+												<div class="size-4" in:scale={{ duration: 200 }}>
+													<Save class="size-full" />
+												</div>
+											{:else}
+												<div class="size-4" in:scale={{ duration: 200 }}>
+													<Pen class="size-full" />
+												</div>
+											{/if}
+										</Button>
+									</div>
+								{/if}
+								{#if editListId === list.id}
+									<div class="mt-2 shrink-0" transition:slide={{ axis: 'y' }}>
+										<Button
+											variant="destructive"
+											size="icon-sm"
+											onclick={() => (deleteListStates = { ...deleteListStates, open: true, list })}
+										>
+											<Trash class="size-4" />
+										</Button>
+									</div>
+								{/if}
+							</div>
 						</div>
-					{/if}
+						<!-- List of restaurants details -->
+						{#if listDetailsId === list.id}
+							<div
+								class="mt-2 flex flex-col gap-2"
+								transition:slide={{ duration: 300, easing: linear, axis: 'y' }}
+							>
+								{#each list.restaurants as restaurant (restaurant.id)}
+									<div
+										class="flex flex-row justify-between rounded border border-border p-2"
+										transition:slide={{ duration: 200, axis: 'y' }}
+									>
+										<div class="flex flex-row items-center gap-2">
+											<span class="text-lg">{restaurant.icon}</span>
+											<p class="line-clamp-1 text-lg font-medium">
+												{restaurant.name}
+											</p>
+										</div>
+										<Button
+											variant="destructive"
+											size="icon-sm"
+											onclick={() => removeFromList(list.id, restaurant.id)}
+										>
+											<Trash class="size-4" />
+										</Button>
+									</div>
+								{:else}
+									<div
+										class="text-sm text-muted-foreground"
+										in:slide={{ duration: 200, axis: 'y', delay: 200 }}
+										out:slide={{ duration: 200, axis: 'y' }}
+									>
+										No restaurants in this list.
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
 				{/each}
 			{/if}
 		</div>
 		{#if createListOpen}
-			<div class="mt-2 flex flex-col gap-2" transition:slide={{ duration: 300 }}>
+			<div class="mt-6 flex shrink-0 flex-col gap-2" transition:slide={{ duration: 300 }}>
 				<Input bind:value={createListContent.name} placeholder="Name" />
 				<Textarea
 					id="newListDescription"
@@ -477,7 +512,13 @@
 			</div>
 		{/if}
 
-		<div class="flex flex-row items-center">
+		<!-- Footer -->
+		<div
+			class={cn(
+				'flex shrink-0 flex-row items-center transition-all',
+				createListOpen ? 'mt-2' : 'mt-6'
+			)}
+		>
 			{#if !editListId}
 				<div class="w-full ltr:mr-2 rtl:ml-2" transition:slide={{ axis: 'x', duration: 300 }}>
 					<Button
@@ -490,6 +531,7 @@
 								Globals.manageLists = false;
 								Globals.toggleList = null;
 								listDetailsId = null;
+								mapCtx.resetMapView();
 							} else {
 								createListOpen = true;
 							}
@@ -529,14 +571,14 @@
 	</div>
 {/if}
 
-<!-- Delete list confirm modal -->
+<!-- Delete list confirm dialog -->
 {#if deleteListStates.open}
 	<div
-		class="fixed inset-0 z-40 bg-background/50 backdrop-blur-xs"
+		class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
 	></div>
 	<div
-		class="fixed top-1/2 left-1/2 z-40 w-[90%] max-w-150 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
+		class="fixed top-1/2 left-1/2 z-30 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
 		transition:scale={{ duration: 200, start: 0.5 }}
 	>
 		<h2 class="text-xl font-medium">Delete {deleteListStates.list!.name}</h2>

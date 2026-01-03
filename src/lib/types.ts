@@ -27,6 +27,9 @@ export const NewReviewZ = ReviewZ.omit({ id: true, date: true });
 export type NewReview = z.infer<typeof NewReviewZ>;
 
 export const RestaurantNameMaxLength = 30;
+export interface MapCtx {
+	resetMapView: () => void;
+}
 export const RestaurantZ = z.object({
 	id: UUIDZ,
 	name: z.string().max(RestaurantNameMaxLength),
@@ -58,3 +61,8 @@ export const NewListZ = ListZ.omit({ id: true, createdAt: true, restaurants: tru
 	icon: ListZ.shape.icon.optional()
 });
 export type NewList = z.infer<typeof NewListZ>;
+
+export const MapCtxKey = 'mapCtx';
+export interface MapCtx {
+	resetMapView: () => void;
+}
