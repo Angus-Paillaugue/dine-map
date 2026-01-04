@@ -111,6 +111,17 @@ export function emojiToSvgDataUrl({
 		anchorXUnits: 'fraction',
 		anchorYUnits: 'fraction'
 	});
+	console.log(
+		'clusterStyle',
+		icon,
+		createIconStyle({
+			src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(icon)}`,
+			scale: 1,
+			anchor: [0.5, 0.5],
+			anchorXUnits: 'fraction',
+			anchorYUnits: 'fraction'
+		})
+	);
 	const labelStyle = new OlStyle({
 		text: new OlText({
 			text:
@@ -143,7 +154,7 @@ export const clusterStyle = (feature: any) => {
 	const size = 34;
 	const svgSize = 84;
 	const fontSize = svgSize * 0.4;
-	const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${svgSize} ${svgSize + 3}"><path d="M2.3594 39.3093C2.6476 27.6279 7.3734 19.2 17.2915 13.4923 22.1732 10.683 26.4621 6.8621 31.1428 3.6808 38.2262-1.1335 45.557-1.2571 52.6259 3.5583 59.6418 8.3375 66.7675 13.0717 73.1333 18.6394 76.2864 21.3972 78.9365 25.7264 79.8902 29.7956 81.8959 38.3528 82.8798 47.1812 83.8189 55.9479 84.7644 64.7747 81.0892 71.0309 73.0074 74.8934 65.351 78.5525 57.5697 81.9542 49.8001 85.3708 44.6684 87.6274 39.4401 87.6667 34.2836 85.3964 26.6679 82.0434 19.0221 78.7498 11.4967 75.2027 2.465 70.9455-1.0766 64.0942.2879 54.074.9393 49.2902 1.6837 44.519 2.4436 39.3093z" fill="${tailwindVarValue('secondary')}" /><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="${fontSize}" font-weight="bold" font-family="${tailwindVarValue('font-sans')}"  fill="${tailwindVarValue('foreground')}">${String(nbPOIs)}</text></svg>`;
+	const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${svgSize} ${svgSize + 3}"><path d="M2.3594 39.3093C2.6476 27.6279 7.3734 19.2 17.2915 13.4923 22.1732 10.683 26.4621 6.8621 31.1428 3.6808 38.2262-1.1335 45.557-1.2571 52.6259 3.5583 59.6418 8.3375 66.7675 13.0717 73.1333 18.6394 76.2864 21.3972 78.9365 25.7264 79.8902 29.7956 81.8959 38.3528 82.8798 47.1812 83.8189 55.9479 84.7644 64.7747 81.0892 71.0309 73.0074 74.8934 65.351 78.5525 57.5697 81.9542 49.8001 85.3708 44.6684 87.6274 39.4401 87.6667 34.2836 85.3964 26.6679 82.0434 19.0221 78.7498 11.4967 75.2027 2.465 70.9455-1.0766 64.0942.2879 54.074.9393 49.2902 1.6837 44.519 2.4436 39.3093z" fill="${tailwindVarValue('secondary')}" /><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="${fontSize}" font-weight="bold" font-family="${tailwindVarValue('font-sans').replaceAll('"', "'")}"  fill="${tailwindVarValue('foreground')}">${String(nbPOIs)}</text></svg>`;
 	return createIconStyle({
 		src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(icon)}`,
 		scale: 1,
