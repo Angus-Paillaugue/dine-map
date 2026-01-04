@@ -10,6 +10,7 @@ import {
 	Stroke as OlStroke
 } from 'ol/style';
 import { createIconStyle } from 'svelte-openlayers/utils';
+import { tick } from 'svelte';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -65,6 +66,26 @@ export const formatDate = (date: string | Date): string => {
 	});
 };
 
+export const formatDuration = (durationInSeconds: number): string => {
+	const hours = Math.floor(durationInSeconds / 3600);
+	const minutes = Math.ceil((durationInSeconds % 3600) / 60);
+
+	if (hours > 0) {
+		return `${hours} hr${hours > 1 ? 's' : ''} ${minutes} min${minutes !== 1 ? 's' : ''}`;
+	} else {
+		return `${minutes} min${minutes !== 1 ? 's' : ''}`;
+	}
+};
+
+export const formatDistance = (distanceInMeters: number): string => {
+	const kms = distanceInMeters / 1000;
+	if (kms >= 1) {
+		return `${kms.toFixed(2)} km`;
+	} else {
+		return `${distanceInMeters.toFixed(0)} m`;
+	}
+};
+
 export function emojiToSvgDataUrl({
 	emoji,
 	name,
@@ -82,8 +103,7 @@ export function emojiToSvgDataUrl({
 	const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
 		<rect width="100%" height="100%" rx="${size / 2}" fill="${bgColor}" />
 		<text x="50%" y="50%" font-size="${Math.floor(size * 0.6)}" text-anchor="middle" dominant-baseline="central" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,Segoe UI Symbol">${emoji}</text>
-	</svg>
-	`;
+	</svg>`;
 	const style = createIconStyle({
 		src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(icon)}`,
 		scale: 1,
@@ -146,3 +166,54 @@ export const bytesToHumanReadable = (bytes: number): string => {
 
 	return `${(bytes / GIGABYTE).toFixed(0)} GB`;
 };
+
+export function portal(el: HTMLElement, target?: HTMLElement | string) {
+	target ??= 'body';
+	let targetEl: HTMLElement | null = null;
+
+	// Temporarily hide the element to prevent layout shift
+	el.style.position = 'absolute';
+	el.style.opacity = '0';
+	el.style.pointerEvents = 'none';
+
+	async function update(newTarget: HTMLElement | string) {
+		target = newTarget;
+		if (typeof target === 'string') {
+			targetEl = document.querySelector(target);
+			if (targetEl === null) {
+				await tick();
+				targetEl = document.querySelector(target);
+			}
+			if (targetEl === null) {
+				throw new Error(`No element found matching css selector: "${target}"`);
+			}
+		} else if (target instanceof HTMLElement) {
+			targetEl = target;
+		} else {
+			throw new TypeError(
+				`Unknown portal target type: ${
+					target === null ? 'null' : typeof target
+				}. Allowed types: string (CSS selector) or HTMLElement.`
+			);
+		}
+
+		// Append the element to the target and restore its visibility
+		targetEl.appendChild(el);
+		el.style.position = '';
+		el.style.opacity = '';
+		el.style.pointerEvents = '';
+		el.hidden = false;
+	}
+
+	function destroy() {
+		if (el.parentNode) {
+			el.parentNode.removeChild(el);
+		}
+	}
+
+	update(target);
+	return {
+		update,
+		destroy
+	};
+}
