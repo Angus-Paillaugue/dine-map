@@ -323,29 +323,29 @@
 	></div>
 	<!-- Main dialog -->
 	<div
-		class="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 flex-col rounded border border-border bg-card p-4"
+		class="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 flex-col rounded border border-border bg-card px-2 py-4"
 		transition:scale={{ duration: 200, start: 0.5 }}
 	>
 		{#if restaurant}
-			<h2 class="text-xl font-medium">Save {restaurant.name}</h2>
+			<h2 class="px-2 text-xl font-medium">Save {restaurant.name}</h2>
 		{/if}
 		{#if !restaurant}
 			<!-- Header -->
-			<div class="flex flex-row items-center justify-between">
+			<div class="flex flex-row items-center justify-between px-2">
 				<h1 class="text-xl font-medium">Manage lists</h1>
 				<Button size="icon-sm" onclick={() => (uploadFromFile.open = true)}>
 					<Upload class="size-4" />
 				</Button>
 			</div>
 		{/if}
-		<div class={cn('flex min-h-0 flex-1 flex-col overflow-y-auto')}>
+		<div class={cn('mt-6 flex min-h-0 flex-1 flex-col overflow-y-auto')}>
 			{#if restaurant}
-				{#each lists as list, i (list.id)}
+				{#each lists as list (list.id)}
 					<button
 						onclick={() => toggleRestaurantInList(list.id)}
 						class={cn(
-							'flex flex-row items-center justify-start gap-2 text-start',
-							i !== 0 && 'mt-2'
+							'flex flex-row items-center justify-start gap-2 p-2 text-start',
+							createListOpen && 'pointer-events-none blur-xs'
 						)}
 					>
 						{@render listIcon(list.icon, list.id, false)}
@@ -364,8 +364,10 @@
 					{@const isEditingThisList = editListId === list.id}
 					<div
 						class={cn(
-							'flex flex-col p-2 transition-all duration-300',
-							(createListOpen || (listDetailsId && listDetailsId !== list.id)) &&
+							'relative flex flex-col p-2 transition-all duration-300',
+							(createListOpen ||
+								(listDetailsId && listDetailsId !== list.id) ||
+								(editListId && !isEditingThisList)) &&
 								'pointer-events-none blur-xs'
 						)}
 					>
@@ -374,10 +376,7 @@
 							onclick={(e) => onListItemClick(e, list.id)}
 							tabindex={0}
 							role="button"
-							class={cn(
-								'listItem flex flex-row items-center justify-start gap-2 text-start transition-all',
-								editListId && !isEditingThisList && 'pointer-events-none blur-xs'
-							)}
+							class="listItem flex flex-row items-center justify-start gap-2 text-start transition-all"
 						>
 							{#if isEditingThisList}
 								<EmojiPicker
@@ -501,7 +500,7 @@
 			{/if}
 		</div>
 		{#if createListOpen}
-			<div class="mt-6 flex shrink-0 flex-col gap-2" transition:slide={{ duration: 300 }}>
+			<div class="mt-6 flex shrink-0 flex-col gap-2 px-2" transition:slide={{ duration: 300 }}>
 				<Input bind:value={createListContent.name} placeholder="Name" />
 				<Textarea
 					id="newListDescription"
@@ -516,7 +515,7 @@
 		<!-- Footer -->
 		<div
 			class={cn(
-				'flex shrink-0 flex-row items-center transition-all',
+				'flex shrink-0 flex-row items-center px-2 transition-all',
 				createListOpen ? 'mt-2' : 'mt-6'
 			)}
 		>

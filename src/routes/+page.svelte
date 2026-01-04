@@ -108,7 +108,7 @@
 </svelte:head>
 
 <MapComponent.Root class="block h-96 w-full" bind:map onClick={onMapClick} zoomControl={false}>
-	<MapComponent.View onMoveEnd={updateViewBox} maxZoom={22} zoom={14} />
+	<MapComponent.View onMoveEnd={updateViewBox} maxZoom={22} zoom={14} enableRotation={false} />
 	<!-- Map tiles -->
 	<!-- ? The attribution text and styling are not default. I do not think that I break any rule listed by OpenStreetMap or Carto (see https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Attribution_text, https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Interactive_maps & https://github.com/CartoDB/basemap-styles?tab=readme-ov-file#1-web-raster-basemaps) but if you have any legal knowledge, please open a PR or discussion about it. -->
 	<Layer.Tile
