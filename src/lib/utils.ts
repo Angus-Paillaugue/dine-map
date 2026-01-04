@@ -111,17 +111,6 @@ export function emojiToSvgDataUrl({
 		anchorXUnits: 'fraction',
 		anchorYUnits: 'fraction'
 	});
-	console.log(
-		'clusterStyle',
-		icon,
-		createIconStyle({
-			src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(icon)}`,
-			scale: 1,
-			anchor: [0.5, 0.5],
-			anchorXUnits: 'fraction',
-			anchorYUnits: 'fraction'
-		})
-	);
 	const labelStyle = new OlStyle({
 		text: new OlText({
 			text:
