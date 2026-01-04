@@ -275,7 +275,7 @@
 					</div>
 				</Select.Trigger>
 				<Select.Content>
-					{#each transportModes as mode}
+					{#each transportModes as mode (mode)}
 						<Select.Item class="capitalize" value={mode}>
 							{@render transportModeIcon(mode)}
 							{mode}

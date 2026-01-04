@@ -47,7 +47,6 @@
 	let newReview = $state<NewReview>({
 		rating: 5,
 		comment: '',
-		// svelte-ignore state_referenced_locally
 		restaurantId: ''
 	});
 	let editReview = $state({ id: '', open: false, fields: { rating: 5, comment: '' } });
