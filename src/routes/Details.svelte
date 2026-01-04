@@ -407,6 +407,7 @@
 					class="shrink-0"
 					variant="outline"
 					size="icon-sm"
+					aria-label="Calculate route to this location"
 					onclick={() => showRouteToPoi(restaurant)}
 				>
 					{#if isCalculatingRoute}

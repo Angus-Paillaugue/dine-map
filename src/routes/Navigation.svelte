@@ -38,12 +38,10 @@
 		coordinates: Coordinates | null;
 		available: boolean;
 		heading: number | null;
-		style: ReturnType<typeof createIconStyle> | null;
 	}>({
 		coordinates: null,
 		available: true,
-		heading: null,
-		style: null
+		heading: null
 	});
 
 	function createPositionIconElement() {
@@ -64,48 +62,49 @@
 	}
 
 	onMount(() => {
+		let keyDownListener = (e: KeyboardEvent) => {
+			if (!userPosition.coordinates) return;
+			const step = 0.0005;
+			switch (e.key) {
+				case 'w':
+					userPosition.coordinates = [
+						userPosition.coordinates[0],
+						userPosition.coordinates[1] + step
+					];
+					break;
+				case 's':
+					userPosition.coordinates = [
+						userPosition.coordinates[0],
+						userPosition.coordinates[1] - step
+					];
+					break;
+				case 'a':
+					userPosition.coordinates = [
+						userPosition.coordinates[0] - step,
+						userPosition.coordinates[1]
+					];
+					break;
+				case 'd':
+					userPosition.coordinates = [
+						userPosition.coordinates[0] + step,
+						userPosition.coordinates[1]
+					];
+					break;
+				case 'q':
+					userPosition.heading = ((userPosition.heading || 0) - Math.PI / 18) % (2 * Math.PI);
+					break;
+				case 'e':
+					userPosition.heading = ((userPosition.heading || 0) + Math.PI / 18) % (2 * Math.PI);
+					break;
+			}
+		};
 		if (dev) {
 			console.debug('Dev mode: Simulated user position set.');
 			userPosition.coordinates = [1.4780642, 43.5433141];
 			userPosition.heading = Math.PI / 2; // 90 degrees
 			userPosition.available = true;
 			// Make some keyboard controls to simulate movement
-			window.addEventListener('keydown', (e) => {
-				if (!userPosition.coordinates) return;
-				const step = 0.0005;
-				switch (e.key) {
-					case 'w':
-						userPosition.coordinates = [
-							userPosition.coordinates[0],
-							userPosition.coordinates[1] + step
-						];
-						break;
-					case 's':
-						userPosition.coordinates = [
-							userPosition.coordinates[0],
-							userPosition.coordinates[1] - step
-						];
-						break;
-					case 'a':
-						userPosition.coordinates = [
-							userPosition.coordinates[0] - step,
-							userPosition.coordinates[1]
-						];
-						break;
-					case 'd':
-						userPosition.coordinates = [
-							userPosition.coordinates[0] + step,
-							userPosition.coordinates[1]
-						];
-						break;
-					case 'q':
-						userPosition.heading = ((userPosition.heading || 0) - Math.PI / 18) % (2 * Math.PI);
-						break;
-					case 'e':
-						userPosition.heading = ((userPosition.heading || 0) + Math.PI / 18) % (2 * Math.PI);
-						break;
-				}
-			});
+			window.addEventListener('keydown', keyDownListener);
 		} else if (map) {
 			const geolocation = new Geolocation({
 				tracking: true,
@@ -133,6 +132,12 @@
 				console.error(error);
 			});
 		}
+
+		return () => {
+			if (dev) {
+				window.removeEventListener('keydown', keyDownListener);
+			}
+		};
 	});
 
 	async function getRouting(end: Coordinates) {
@@ -239,7 +244,12 @@
 		{:else}
 			<div class="flex w-full flex-row items-center justify-between gap-4">
 				<h1 class="line-clamp-1 text-xl font-medium">Navigating to {activePOI.name}</h1>
-				<Button variant="secondary" size="icon-sm" onclick={exitNavigation}>
+				<Button
+					variant="secondary"
+					size="icon-sm"
+					onclick={exitNavigation}
+					aria-label="Exit navigation"
+				>
 					<X class="size-4" />
 				</Button>
 			</div>
