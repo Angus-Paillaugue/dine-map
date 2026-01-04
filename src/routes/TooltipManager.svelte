@@ -2,7 +2,7 @@
 	import type { Restaurant } from '$lib/types';
 	import { Overlay } from 'svelte-openlayers';
 	import { ChevronRight } from '@lucide/svelte';
-	import { clusterStyle, cn } from '$lib/utils';
+	import { clusterStyle } from '$lib/utils';
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
 </script>

@@ -16,6 +16,7 @@
 	import Search from './Search.svelte';
 	import { onMount, tick } from 'svelte';
 	import { setContext } from 'svelte';
+	import Navigation from './Navigation.svelte';
 
 	let restaurants = $derived<RestaurantType[]>(page.data.restaurants);
 	let lists = $derived<List[]>(page.data.lists);
@@ -108,9 +109,9 @@
 </svelte:head>
 
 <MapComponent.Root class="block h-96 w-full" bind:map onClick={onMapClick} zoomControl={false}>
-	<MapComponent.View onMoveEnd={updateViewBox} maxZoom={22} zoom={14} />
+	<MapComponent.View onMoveEnd={updateViewBox} maxZoom={22} zoom={14} enableRotation={false} />
 	<!-- Map tiles -->
-	<!-- ? The attribution text and styling are not default. I do not think that I break any rule listed by OpenStreetMap or Carto (see https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Attribution_text, https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Interactive_maps & https://github.com/CartoDB/basemap-styles?tab=readme-ov-file#1-web-raster-basemaps) but if you have any legal knowledge, please open a PR or discussion about it. -->
+	<!-- ? The attribution text and styling are not default. I do not think that I break any rule listed by OpenStreetMap (see https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Attribution_text, https://osmfoundation.org/wiki/Licence/Attribution_Guidelines#Interactive_maps) but if you have any legal knowledge, please open a PR or discussion about it. -->
 	<Layer.Tile
 		source="xyz"
 		url={BASE_MAP_URL}
@@ -120,6 +121,7 @@
 
 	<!-- Restaurants dots -->
 	<Layer.Vector bind:source={clusterSource} style={clusterStyle}></Layer.Vector>
+	<Navigation bind:map />
 
 	<!-- Restaurants tooltips -->
 	<TooltipManager />

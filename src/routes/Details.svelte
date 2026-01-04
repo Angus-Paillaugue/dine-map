@@ -16,11 +16,22 @@
 	import { invalidateAll } from '$app/navigation';
 	import { cn, formatDate } from '$lib/utils';
 	import * as Empty from '$lib/components/ui/empty';
-	import { Bookmark, Pen, Plus, Save, Star, Trash2, UtensilsCrossed, X } from '@lucide/svelte';
+	import {
+		Bookmark,
+		Pen,
+		Plus,
+		Route,
+		Save,
+		Star,
+		Trash2,
+		UtensilsCrossed,
+		X
+	} from '@lucide/svelte';
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
 	import * as InputGroup from '$lib/components/ui/input-group';
 	import { tick } from 'svelte';
+	import { Spinner } from '$lib/components/ui/spinner';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.restaurantDetailsId) ||
@@ -31,11 +42,11 @@
 			list.restaurants.map((r) => r.id).includes(restaurant?.id || '')
 		)
 	);
+	let isCalculatingRoute = $state(false);
 	let reviewOpen = $state(false);
 	let newReview = $state<NewReview>({
 		rating: 5,
 		comment: '',
-		// svelte-ignore state_referenced_locally
 		restaurantId: ''
 	});
 	let editReview = $state({ id: '', open: false, fields: { rating: 5, comment: '' } });
@@ -212,6 +223,13 @@
 			editPOIName.name = restaurant.name;
 		}
 	}
+
+	async function showRouteToPoi(poi: Restaurant) {
+		isCalculatingRoute = true;
+		await Globals.showRouteToPoi(poi);
+		isCalculatingRoute = false;
+		Globals.restaurantDetailsId = null;
+	}
 </script>
 
 <svelte:window
@@ -309,7 +327,7 @@
 
 {#if restaurant}
 	<div
-		class="fixed inset-0 z-20 flex flex-col gap-4 bg-background p-2"
+		class="fixed inset-0 z-30 flex flex-col gap-4 bg-background p-2"
 		transition:slide={{ axis: 'y', duration: 400 }}
 	>
 		<div class="flex flex-row items-center justify-between gap-2">
@@ -383,10 +401,33 @@
 				{/each}
 			</div>
 
-			<!-- manage place bookmarks button -->
-			<Button class="shrink-0" size="icon-sm" onclick={() => (Globals.toggleList = restaurant.id)}>
-				<Bookmark class="size-4" />
-			</Button>
+			<div class="flex flex-row gap-2">
+				<!-- manage place bookmarks button -->
+				<Button
+					class="shrink-0"
+					variant="outline"
+					size="icon-sm"
+					aria-label="Calculate route to this location"
+					onclick={() => showRouteToPoi(restaurant)}
+				>
+					{#if isCalculatingRoute}
+						<span class="size-4" in:scale={{ duration: 200 }}>
+							<Spinner class="size-full" />
+						</span>
+					{:else}
+						<span class="size-4" in:scale={{ duration: 200 }}>
+							<Route class="size-full" />
+						</span>
+					{/if}
+				</Button>
+				<Button
+					class="shrink-0"
+					size="icon-sm"
+					onclick={() => (Globals.toggleList = restaurant.id)}
+				>
+					<Bookmark class="size-4" />
+				</Button>
+			</div>
 		</div>
 
 		<!-- Main content (empty or reviews list) -->
@@ -443,11 +484,11 @@
 	<!-- New review dialog -->
 	{#if reviewOpen}
 		<div
-			class="fixed inset-0 z-20 bg-background/50 backdrop-blur-xs"
+			class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
 			transition:fade={{ duration: 200 }}
 		></div>
 		<div
-			class="fixed top-1/2 left-1/2 z-20 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
+			class="fixed top-1/2 left-1/2 z-30 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
 			transition:scale={{ duration: 200, start: 0.5 }}
 		>
 			<h2 class="text-xl font-medium">New review for {restaurant.name}</h2>
@@ -490,11 +531,11 @@
 <!-- Delete POI confirm dialog -->
 {#if deleteStates.confirmOpen && restaurant}
 	<div
-		class="fixed inset-0 z-20 bg-background/50 backdrop-blur-xs"
+		class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
 	></div>
 	<div
-		class="fixed top-1/2 left-1/2 z-20 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
+		class="fixed top-1/2 left-1/2 z-30 w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 space-y-6 rounded border border-border bg-card p-4"
 		transition:scale={{ duration: 200, start: 0.5 }}
 	>
 		<h2 class="text-xl font-medium">Delete {restaurant.name}</h2>

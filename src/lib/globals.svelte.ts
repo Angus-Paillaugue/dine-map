@@ -6,6 +6,7 @@ class GlobalsClass {
 	manageLists = $state(false);
 	mapFilterList = $state<List['id'][]>([]);
 	viewBox = $state<Viewbox | null>(null);
+	showRouteToPoi = $state<(poi: Restaurant) => Promise<void>>(async () => {});
 }
 
 const Globals = new GlobalsClass();
