@@ -51,7 +51,7 @@
 		"ol": "^10.7.0",
 		"svelte-adapter-bun": "^1.0.1",
 		"svelte-openlayers": "^1.6.0",
-		"zod": "^4.3.4"
+		"zod": "^4.3.5"
 	},
 	"lint-staged": {
 		"*.{js,ts,svelte,json,css,md}": "prettier --write"
