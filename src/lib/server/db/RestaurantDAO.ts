@@ -1,8 +1,10 @@
-import type { NewRestaurant, Restaurant, Review, UUID } from '$lib/types';
+import type { DietaryInfo, NewRestaurant, Restaurant, Review, UUID } from '$lib/types';
 import { sql } from 'bun';
 import { fromPgCoordinates, toPgCoordinates } from './utils';
 import { getRestaurantRating } from '$lib/utils';
 import { ReviewDAO } from './ReviewDAO';
+import { microserviceManager } from '../microservices';
+import DietaryPreferenceDAO from './DietaryPreferenceDAO';
 
 interface RestaurantTable {
 	id: UUID;
@@ -12,28 +14,34 @@ interface RestaurantTable {
 }
 
 export class RestaurantDAO {
-	static convertToRestaurant(row: RestaurantTable, reviews: Review[] = []): Restaurant {
+	static convertToRestaurant(
+		row: RestaurantTable,
+		otherData?: { reviews?: Review[]; dietaryInfo?: DietaryInfo }
+	): Restaurant {
+		const { reviews = [], dietaryInfo } = otherData || {};
 		return {
 			id: row.id,
 			name: row.name,
 			coordinates: fromPgCoordinates(row.coordinates),
-			rating: reviews ? getRestaurantRating(reviews) : 0,
-			reviews,
-			icon: row.icon
+			rating: reviews.length ? getRestaurantRating(reviews) : 0,
+			reviews: reviews,
+			icon: row.icon,
+			dietaryInfo
 		};
 	}
 
 	static async getRestaurantById(id: Restaurant['id']): Promise<Restaurant | null> {
 		const [restaurant] = await sql<RestaurantTable[]>`
-    SELECT *
-    FROM restaurant
-    WHERE id = ${id}
+			SELECT *
+			FROM restaurant
+			WHERE id = ${id}
     `;
 		if (!restaurant) {
 			return null;
 		}
 		const reviews = await ReviewDAO.getReviewsForRestaurant(id);
-		return this.convertToRestaurant(restaurant, reviews);
+		const dietaryInfo = (await DietaryPreferenceDAO.getPreferencesForRestaurant(id)) || undefined;
+		return this.convertToRestaurant(restaurant, { reviews, dietaryInfo });
 	}
 
 	static async createRestaurant(restaurant: NewRestaurant): Promise<Restaurant> {
@@ -42,7 +50,9 @@ export class RestaurantDAO {
       VALUES (${restaurant.name}, ${toPgCoordinates(restaurant.coordinates)})
       RETURNING *
     `;
-		return this.convertToRestaurant(r);
+		const createdRestaurant = this.convertToRestaurant(r);
+		microserviceManager.process(createdRestaurant, ['dietary-preference']);
+		return createdRestaurant;
 	}
 
 	static async getAllRestaurants(): Promise<Restaurant[]> {

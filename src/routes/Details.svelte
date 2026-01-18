@@ -1,9 +1,33 @@
+<script module>
+	import { Gem, LeafyGreen, PiggyBank, Vegan } from '@lucide/svelte';
+	const DIETARY_INFO_DISPLAY: Record<keyof DietaryInfo, { icon: Component; color: `#${string}` }> =
+		{
+			halal: {
+				icon: PiggyBank,
+				color: '#fb7185'
+			},
+			vegan: {
+				icon: Vegan,
+				color: '#15803d'
+			},
+			vegetarian: {
+				icon: LeafyGreen,
+				color: '#a3e635'
+			},
+			kosher: {
+				icon: Gem,
+				color: '#fafafa'
+			}
+		};
+</script>
+
 <script lang="ts">
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
 	import {
 		RestaurantNameMaxLength,
+		type DietaryInfo,
 		type List,
 		type NewReview,
 		type Restaurant,
@@ -30,7 +54,7 @@
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
 	import * as InputGroup from '$lib/components/ui/input-group';
-	import { tick } from 'svelte';
+	import { tick, type Component } from 'svelte';
 	import { Spinner } from '$lib/components/ui/spinner';
 
 	let restaurant = $derived(
@@ -58,6 +82,7 @@
 		input: HTMLInputElement | null;
 	}>({ name: '', open: false, input: null });
 
+	// On open
 	$effect(() => {
 		if (restaurant) {
 			newReview.restaurantId = restaurant.id;
@@ -472,13 +497,28 @@
 		{/if}
 
 		<!-- Footer -->
-		<div class="mt-auto flex shrink-0 flex-row gap-2">
-			<Button variant="destructive" onclick={() => (deleteStates.confirmOpen = true)}>
-				<Trash2 class="size-4 shrink-0" />
-			</Button>
-			<Button variant="outline" class="grow" onclick={() => (Globals.restaurantDetailsId = null)}>
-				Close
-			</Button>
+		<div class="mt-auto flex shrink-0 flex-col">
+			{#if Object.values(restaurant.dietaryInfo).some((e) => e === true)}
+				<div class="mb-2 flex flex-row flex-nowrap gap-2 overflow-x-auto">
+					{#each Object.entries(restaurant.dietaryInfo).filter(([, v]) => v === true) as [type, value]}
+						{@const info = DIETARY_INFO_DISPLAY[type as keyof DietaryInfo]}
+						<div
+							class="flex flex-row items-center gap-2 rounded-full border border-border bg-card px-2 py-1"
+						>
+							<info.icon class="size-4" style="color: {info.color}" />
+							<span class="text-sm capitalize">{type}</span>
+						</div>
+					{/each}
+				</div>
+			{/if}
+			<div class="flex flex-row gap-2">
+				<Button variant="destructive" onclick={() => (deleteStates.confirmOpen = true)}>
+					<Trash2 class="size-4 shrink-0" />
+				</Button>
+				<Button variant="outline" class="grow" onclick={() => (Globals.restaurantDetailsId = null)}>
+					Close
+				</Button>
+			</div>
 		</div>
 	</div>
 	<!-- New review dialog -->
