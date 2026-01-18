@@ -88,6 +88,6 @@
 	}
 
 	.ol-attribution {
-		@apply !top-0 !right-auto !bottom-auto !left-0 !rounded-br-lg !bg-card !text-foreground;
+		@apply !top-auto !right-auto !bottom-14 !left-0 !rounded-r-lg !bg-card !text-foreground;
 	}
 }

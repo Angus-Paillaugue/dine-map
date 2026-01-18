@@ -195,6 +195,11 @@
 		activePOI = null;
 		routing.path = null;
 	};
+
+	function getCurrentUserPosition() {
+		return userPosition.coordinates || [0, 0];
+	}
+	Globals.getCurrentUserPosition = getCurrentUserPosition;
 </script>
 
 {#snippet transportModeIcon(mode: TransportModes)}
