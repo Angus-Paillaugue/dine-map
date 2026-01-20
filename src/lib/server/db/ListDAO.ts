@@ -1,4 +1,4 @@
-import type { Restaurant, UUID, NewList, List, AvailableEmojis } from '$lib/types';
+import type { Restaurant, UUID, NewList, List, AvailableEmojis, User } from '$lib/types';
 import { sql } from 'bun';
 import { RestaurantDAO } from './RestaurantDAO';
 
@@ -8,6 +8,7 @@ interface ListTable {
 	description: string;
 	icon: AvailableEmojis;
 	created_at: string;
+	created_by: User['id'];
 }
 interface BelongsInListTable {
 	list_id: UUID;
@@ -23,34 +24,52 @@ export class ListDAO {
 			description: row.description,
 			createdAt: new Date(row.created_at),
 			restaurants,
+			createdBy: row.created_by,
 			icon: row.icon
 		};
 	}
 
+	static async checkOwnership(listId: List['id'], userId: User['id']): Promise<boolean> {
+		const [listRow] = await sql<ListTable[]>`
+			SELECT l.id
+			FROM "list" l
+			WHERE l.id = ${listId} AND l.created_by = ${userId}
+		`;
+		return !!listRow;
+	}
+
 	static async createList(list: NewList): Promise<List> {
-		const rows: (keyof NewList)[] = ['name', 'description'];
+		const rows: { key: keyof NewList; equivalent: string }[] = [
+			{ key: 'name', equivalent: 'name' },
+			{ key: 'description', equivalent: 'description' },
+			{ key: 'createdBy', equivalent: 'created_by' }
+		];
 		if (list.icon) {
-			rows.push('icon');
+			rows.push({ key: 'icon', equivalent: 'icon' });
 		}
-		const [l] = await sql`
-      INSERT INTO list ${sql(list, ...rows)}
-      RETURNING *
-    `;
+		const [l] = await sql.unsafe(
+			`
+				INSERT INTO "list" (${rows.map((r) => r.equivalent).join(', ')})
+				VALUES (${rows.map((_, i) => '$' + (i + 1)).join(', ')})
+				RETURNING *
+    `,
+			rows.map((r) => list[r.key])
+		);
 		return this.convertToList(l);
 	}
 
 	static async getListById(id: List['id']): Promise<List | null> {
 		const [listRow] = await sql<ListTable[]>`
-			SELECT *
-			FROM list
-			WHERE id = ${id}
+			SELECT l.*
+			FROM "list" l
+			WHERE l.id = ${id}
 		`;
 		if (!listRow) {
 			return null;
 		}
 		const restaurantRows = await sql<BelongsInListTable[]>`
 			SELECT restaurant_id
-			FROM belongs_in_list
+			FROM "belongs_in_list"
 			WHERE list_id = ${id}
 		`;
 		const restaurantIds = restaurantRows.map((r) => r.restaurant_id);
@@ -64,15 +83,16 @@ export class ListDAO {
 		return this.convertToList(listRow, restaurants);
 	}
 
-	static async getAllLists(): Promise<List[]> {
+	static async getAllLists(userId: User['id']): Promise<List[]> {
 		const listRows = await sql<ListTable[]>`
 			SELECT l.*
-			FROM list l
+			FROM "list" l
 			LEFT JOIN (
 				SELECT list_id, MAX(added_at) AS latest_item
 				FROM belongs_in_list
 				GROUP BY list_id
 			) i ON l.id = i.list_id
+			WHERE l.created_by = ${userId}
 			ORDER BY i.latest_item DESC NULLS LAST;
 		`;
 		const lists: (List | null)[] = [];
@@ -86,7 +106,7 @@ export class ListDAO {
 		listId: List['id']
 	): Promise<void> {
 		await sql`
-			INSERT INTO belongs_in_list (list_id, restaurant_id)
+			INSERT INTO "belongs_in_list" (list_id, restaurant_id)
 			VALUES (${listId}, ${restaurantId})
 			ON CONFLICT DO NOTHING
 		`;
@@ -97,14 +117,14 @@ export class ListDAO {
 		listId: List['id']
 	): Promise<void> {
 		await sql`
-			DELETE FROM belongs_in_list
+			DELETE FROM "belongs_in_list"
 			WHERE list_id = ${listId} AND restaurant_id = ${restaurantId}
 		`;
 	}
 
 	static async updateList(id: List['id'], updates: Partial<List>): Promise<List | null> {
 		const [updatedRow] = await sql<ListTable[]>`
-			UPDATE list
+			UPDATE "list"
 			SET ${sql(updates, 'description', 'name', 'icon')}
 			WHERE id = ${id}
 			RETURNING *
@@ -117,16 +137,17 @@ export class ListDAO {
 
 	static async deleteList(id: List['id']): Promise<void> {
 		await sql`
-			DELETE FROM list
-			WHERE id = ${id}
+			DELETE FROM "list" l
+			WHERE l.id = ${id}
 		 `;
 	}
 
-	static async getListByName(name: List['name']): Promise<List | null> {
+	static async getListByName(name: List['name'], userId: User['id']): Promise<List | null> {
 		const [listRow] = await sql<ListTable[]>`
-			SELECT *
-			FROM list
-			WHERE name = ${name}
+			SELECT l.*
+			FROM "list" l
+			WHERE l.name = ${name}
+			AND l.created_by = ${userId}
 		`;
 		if (!listRow) {
 			return null;

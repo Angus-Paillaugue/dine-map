@@ -1,4 +1,4 @@
-import type { DietaryInfo, NewRestaurant, Restaurant, Review, UUID } from '$lib/types';
+import type { DietaryInfo, NewRestaurant, Restaurant, Review, User, UUID } from '$lib/types';
 import { sql } from 'bun';
 import { fromPgCoordinates, toPgCoordinates } from './utils';
 import { getRestaurantRating } from '$lib/utils';
@@ -11,6 +11,7 @@ interface RestaurantTable {
 	name: string;
 	coordinates: string;
 	icon: Restaurant['icon'];
+	created_by: User['id'];
 }
 
 export class RestaurantDAO {
@@ -26,14 +27,32 @@ export class RestaurantDAO {
 			rating: reviews.length ? getRestaurantRating(reviews) : 0,
 			reviews: reviews,
 			icon: row.icon,
-			dietaryInfo
+			createdBy: row.created_by,
+			dietaryInfo: dietaryInfo || {
+				halal: false,
+				vegan: false,
+				vegetarian: false,
+				kosher: false
+			}
 		};
+	}
+
+	static async checkOwnership(
+		restaurantId: Restaurant['id'],
+		userId: User['id']
+	): Promise<boolean> {
+		const [restaurantRow] = await sql<RestaurantTable[]>`
+			SELECT r.id
+			FROM "restaurant" r
+			WHERE r.id = ${restaurantId} AND r.created_by = ${userId}
+		`;
+		return !!restaurantRow;
 	}
 
 	static async getRestaurantById(id: Restaurant['id']): Promise<Restaurant | null> {
 		const [restaurant] = await sql<RestaurantTable[]>`
-			SELECT *
-			FROM restaurant
+			SELECT r.*
+			FROM "restaurant" r
 			WHERE id = ${id}
     `;
 		if (!restaurant) {
@@ -46,8 +65,8 @@ export class RestaurantDAO {
 
 	static async createRestaurant(restaurant: NewRestaurant): Promise<Restaurant> {
 		const [r] = await sql<RestaurantTable[]>`
-      INSERT INTO restaurant (name, coordinates)
-      VALUES (${restaurant.name}, ${toPgCoordinates(restaurant.coordinates)})
+      INSERT INTO "restaurant" (name, coordinates, created_by)
+      VALUES (${restaurant.name}, ${toPgCoordinates(restaurant.coordinates)}, ${restaurant.createdBy})
       RETURNING *
     `;
 		const createdRestaurant = this.convertToRestaurant(r);
@@ -55,10 +74,11 @@ export class RestaurantDAO {
 		return createdRestaurant;
 	}
 
-	static async getAllRestaurants(): Promise<Restaurant[]> {
+	static async getAllRestaurants(userId: User['id']): Promise<Restaurant[]> {
 		const restaurantIds = await sql<RestaurantTable['id'][]>`
-      SELECT id
-      FROM restaurant
+      SELECT r.id
+      FROM "restaurant" r
+			WHERE created_by = ${userId}
     `.values();
 		const restaurantList: (Restaurant | null)[] = [];
 		for (const restaurantId of restaurantIds)
@@ -72,7 +92,7 @@ export class RestaurantDAO {
 		updates: Partial<Restaurant>
 	): Promise<Restaurant | null> {
 		const [updatedRow] = await sql<RestaurantTable[]>`
-			UPDATE restaurant
+			UPDATE "restaurant"
 			SET ${sql(updates, 'name', 'icon')}
 			WHERE id = ${id}
 			RETURNING *
@@ -86,7 +106,7 @@ export class RestaurantDAO {
 
 	static async deleteRestaurant(id: Restaurant['id']): Promise<void> {
 		await sql`
-			DELETE FROM restaurant
+			DELETE FROM "restaurant"
 			WHERE id = ${id}
 		`;
 	}

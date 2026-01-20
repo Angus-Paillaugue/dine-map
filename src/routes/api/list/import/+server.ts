@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import z from 'zod';
 import { importListFromTakeout } from '$lib/server/importTakeout';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	const schema = z.object({
 		files: z.array(
 			z
@@ -20,10 +20,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: 'Invalid request formData', details: parseResult.error }, { status: 400 });
 	}
 	const { files } = parseResult.data;
+	const user = locals.user!;
 	try {
 		const listNames: string[] = [];
 		for (const file of files) {
-			const listName = await importListFromTakeout(file);
+			const listName = await importListFromTakeout(file, user.id);
 			listNames.push(listName);
 		}
 		return json({ success: true, listNames }, { status: 200 });

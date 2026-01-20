@@ -3,10 +3,17 @@ import {
 	availableEmojis as availableEmojisList,
 	type AvailableEmoji as AvailableEmojiType
 } from './emoji.js';
-import type OlMap from 'ol/Map';
 
-export const UUIDZ = z.uuid();
-export type UUID = z.infer<typeof UUIDZ>;
+export const UUID = z.uuid();
+export type UUID = z.infer<typeof UUID>;
+export const DateZ = z.date().or(
+	z
+		.string()
+		.refine((date) => !isNaN(Date.parse(date)), {
+			message: 'Invalid date string'
+		})
+		.transform((date) => new Date(date))
+);
 
 export const CoordinatesZ = z.tuple([z.number(), z.number()]); // [longitude, latitude]
 export type Coordinates = z.infer<typeof CoordinatesZ>;
@@ -20,11 +27,12 @@ export type AvailableEmojis = AvailableEmojiType;
 
 // Review
 export const ReviewZ = z.object({
-	id: UUIDZ,
+	id: UUID,
 	rating: z.number().min(0).max(5),
 	comment: z.string(),
-	restaurantId: UUIDZ,
-	date: z.date()
+	restaurantId: UUID,
+	date: z.date(),
+	createdBy: UUID
 });
 export type Review = z.infer<typeof ReviewZ>;
 export const NewReviewZ = ReviewZ.omit({ id: true, date: true });
@@ -44,30 +52,31 @@ export type DietaryInfo = z.infer<typeof DietaryInfoZ>;
 // Restaurant
 export const RestaurantNameMaxLength = 30;
 export const RestaurantZ = z.object({
-	id: UUIDZ,
+	id: UUID,
 	name: z.string().max(RestaurantNameMaxLength),
 	coordinates: CoordinatesZ,
 	rating: z.number().min(0).max(5),
 	reviews: z.array(z.lazy(() => ReviewZ)),
 	icon: z.enum(availableEmojis),
+	createdBy: UUID,
 	dietaryInfo: DietaryInfoZ
 });
 export type Restaurant = z.infer<typeof RestaurantZ>;
-export const NewRestaurantZ = RestaurantZ.omit({
-	id: true,
-	reviews: true,
-	rating: true,
-	icon: true
+export const NewRestaurantZ = RestaurantZ.pick({
+	name: true,
+	coordinates: true,
+	createdBy: true
 });
 export type NewRestaurant = z.infer<typeof NewRestaurantZ>;
 
 // Bookmark list
 export const ListZ = z.object({
-	id: UUIDZ,
+	id: UUID,
 	name: z.string().max(20),
 	description: z.string().max(200).optional(),
 	createdAt: z.date(),
 	restaurants: z.array(RestaurantZ),
+	createdBy: UUID,
 	icon: z.enum(availableEmojis)
 });
 export type List = z.infer<typeof ListZ>;
@@ -76,9 +85,13 @@ export const NewListZ = ListZ.omit({ id: true, createdAt: true, restaurants: tru
 });
 export type NewList = z.infer<typeof NewListZ>;
 
-// Main page related types
-export const MapCtxKey = 'mapCtx';
-export interface MapCtx {
-	resetMapView: () => void;
-	getMap: () => OlMap | null;
-}
+// User
+export const UserZ = z.object({
+	id: UUID,
+	username: z.string().min(3).max(30),
+	passwordHash: z.string(),
+	createdAt: DateZ
+});
+export type User = z.infer<typeof UserZ>;
+
+export type OKLCHColor = `oklch(${number}% ${number} ${number})`;

@@ -1,26 +1,3 @@
-<script module>
-	import { Gem, LeafyGreen, PiggyBank, Vegan } from '@lucide/svelte';
-	const DIETARY_INFO_DISPLAY: Record<keyof DietaryInfo, { icon: Component; color: `#${string}` }> =
-		{
-			halal: {
-				icon: PiggyBank,
-				color: '#fb7185'
-			},
-			vegan: {
-				icon: Vegan,
-				color: '#15803d'
-			},
-			vegetarian: {
-				icon: LeafyGreen,
-				color: '#a3e635'
-			},
-			kosher: {
-				icon: Gem,
-				color: '#fafafa'
-			}
-		};
-</script>
-
 <script lang="ts">
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
@@ -38,7 +15,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import Rating from './Rating.svelte';
 	import { invalidateAll } from '$app/navigation';
-	import { cn, formatDate } from '$lib/utils';
+	import { cn, DIETARY_INFO_DISPLAY, formatDate } from '$lib/utils';
 	import * as Empty from '$lib/components/ui/empty';
 	import {
 		Bookmark,
@@ -54,7 +31,7 @@
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
 	import * as InputGroup from '$lib/components/ui/input-group';
-	import { tick, type Component } from 'svelte';
+	import { tick } from 'svelte';
 	import { Spinner } from '$lib/components/ui/spinner';
 
 	let restaurant = $derived(
@@ -68,7 +45,7 @@
 	);
 	let isCalculatingRoute = $state(false);
 	let reviewOpen = $state(false);
-	let newReview = $state<NewReview>({
+	let newReview = $state<Omit<NewReview, 'createdBy'>>({
 		rating: 5,
 		comment: '',
 		restaurantId: ''
@@ -498,14 +475,14 @@
 
 		<!-- Footer -->
 		<div class="mt-auto flex shrink-0 flex-col">
-			{#if Object.values(restaurant.dietaryInfo).some((e) => e === true)}
+			{#if restaurant.dietaryInfo && Object.values(restaurant.dietaryInfo).some((e) => e === true)}
 				<div class="mb-2 flex flex-row flex-nowrap gap-2 overflow-x-auto">
-					{#each Object.entries(restaurant.dietaryInfo).filter(([, v]) => v === true) as [type, value]}
+					{#each Object.entries(restaurant.dietaryInfo).filter(([, v]) => v === true) as [type]}
 						{@const info = DIETARY_INFO_DISPLAY[type as keyof DietaryInfo]}
 						<div
 							class="flex flex-row items-center gap-2 rounded-full border border-border bg-card px-2 py-1"
 						>
-							<info.icon class="size-4" style="color: {info.color}" />
+							<info.icon class="size-4" style="color: {info.color};" />
 							<span class="text-sm capitalize">{type}</span>
 						</div>
 					{/each}

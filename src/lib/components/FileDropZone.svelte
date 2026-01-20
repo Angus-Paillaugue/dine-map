@@ -158,7 +158,7 @@
 	)}
 >
 	{#if children}
-		{@render children()}
+		{@render children?.()}
 	{:else}
 		<div class="flex flex-col place-items-center justify-center gap-2">
 			<div

@@ -17,6 +17,9 @@ export class DietaryPreferenceDAO {
 				is_available
 			}))
 			.filter((entry) => entry.is_available === true);
+		if (!data.some((e) => e.is_available)) {
+			return;
+		}
 		await sql`INSERT INTO dietary_preference ${sql(data)} ON CONFLICT (restaurant_id, type) DO UPDATE SET is_available = EXCLUDED.is_available`;
 	}
 

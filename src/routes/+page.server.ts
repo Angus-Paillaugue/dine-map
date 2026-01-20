@@ -1,12 +1,11 @@
-import { RestaurantDAO } from '$lib/server/db/RestaurantDAO';
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { ListDAO } from '$lib/server/db/ListDAO';
 
-export const load = (async () => {
-	const restaurants = await RestaurantDAO.getAllRestaurants();
-	const lists = await ListDAO.getAllLists();
-	return {
-		restaurants,
-		lists
-	};
+export const load = (async ({ locals }) => {
+	const { user } = locals;
+	if (user) {
+		return redirect(303, '/app');
+	} else {
+		return redirect(303, '/auth/log-in');
+	}
 }) satisfies PageServerLoad;
