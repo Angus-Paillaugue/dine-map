@@ -3,7 +3,6 @@ import {
 	availableEmojis as availableEmojisList,
 	type AvailableEmoji as AvailableEmojiType
 } from './emoji.js';
-import type OlMap from 'ol/Map';
 
 export const UUIDZ = z.uuid();
 export type UUID = z.infer<typeof UUIDZ>;
@@ -53,11 +52,9 @@ export const RestaurantZ = z.object({
 	dietaryInfo: DietaryInfoZ
 });
 export type Restaurant = z.infer<typeof RestaurantZ>;
-export const NewRestaurantZ = RestaurantZ.omit({
-	id: true,
-	reviews: true,
-	rating: true,
-	icon: true
+export const NewRestaurantZ = RestaurantZ.pick({
+	name: true,
+	coordinates: true
 });
 export type NewRestaurant = z.infer<typeof NewRestaurantZ>;
 
@@ -75,10 +72,3 @@ export const NewListZ = ListZ.omit({ id: true, createdAt: true, restaurants: tru
 	icon: ListZ.shape.icon.optional()
 });
 export type NewList = z.infer<typeof NewListZ>;
-
-// Main page related types
-export const MapCtxKey = 'mapCtx';
-export interface MapCtx {
-	resetMapView: () => void;
-	getMap: () => OlMap | null;
-}

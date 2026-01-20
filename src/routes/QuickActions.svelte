@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Globals from '$lib/globals.svelte';
-	import { MapCtxKey, type Restaurant, type MapCtx } from '$lib/types';
-	import { DicesIcon, Key, PinIcon } from '@lucide/svelte';
-	import { getContext, type Component } from 'svelte';
+	import { type Restaurant } from '$lib/types';
+	import { DicesIcon, PinIcon } from '@lucide/svelte';
+	import { type Component } from 'svelte';
 	import { getDistance } from 'ol/sphere';
 	import { formatDistance, portal } from '$lib/utils';
 	import { fade, slide } from 'svelte/transition';
@@ -11,7 +11,6 @@
 
 	type Color = `oklch(${number}% ${number} ${number})`;
 
-	const mapCtx = getContext<MapCtx>(MapCtxKey);
 	let restaurants = $derived<Restaurant[]>(page.data.restaurants);
 
 	// Utility function to calculate background and text color with sufficient contrast
@@ -94,10 +93,7 @@
 	function handleQuickAction(id: string) {
 		switch (id) {
 			case 'near-me':
-				const map = mapCtx.getMap();
-				if (!map) return;
 				const nearestPois = getNearestPoi();
-				// Globals.mapFilterRestaurant = nearestPois.map((r) => r.id);
 				nearMeAction.result = nearestPois;
 				break;
 			case 'random-poi':

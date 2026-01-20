@@ -2,19 +2,12 @@
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
-	import {
-		availableEmojis,
-		type MapCtx,
-		MapCtxKey,
-		type List,
-		type NewList,
-		type Restaurant
-	} from '$lib/types';
+	import { availableEmojis, type List, type NewList, type Restaurant } from '$lib/types';
 	import { Bookmark, Map, Pen, Plus, Save, Trash, Upload, X } from '@lucide/svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { cn } from '$lib/utils';
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
@@ -46,7 +39,6 @@
 		description: '',
 		icon: availableEmojis[0]
 	});
-	const mapCtx = getContext<MapCtx>(MapCtxKey);
 
 	async function createList() {
 		isCreatingList = true;
@@ -171,7 +163,7 @@
 	});
 
 	$effect(() => {
-		if (!restaurant && !Globals.manageLists) {
+		if (!restaurant && !Globals.navStates.bookmarks) {
 			editListId = null;
 			editedList = { name: '', description: '', icon: availableEmojis[0] };
 			isCreatingList = false;
@@ -291,7 +283,7 @@
 	</div>
 {/if}
 
-{#if (restaurant || Globals.manageLists) && !uploadFromFile.open}
+{#if (restaurant || Globals.navStates.bookmarks) && !uploadFromFile.open}
 	<!-- Backdrop -->
 	<div
 		class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
@@ -504,10 +496,11 @@
 								createList();
 							} else if (listDetailsId) {
 								Globals.mapFilterList = [listDetailsId];
-								Globals.manageLists = false;
+								Globals.navStates.bookmarks = false;
 								Globals.toggleList = null;
 								listDetailsId = null;
-								mapCtx.resetMapView();
+								goto('/');
+								Globals.resetMapView();
 							} else {
 								createListOpen = true;
 							}
@@ -539,7 +532,7 @@
 						listDetailsId = null;
 					} else {
 						Globals.toggleList = null;
-						Globals.manageLists = false;
+						Globals.navStates.bookmarks = false;
 					}
 				}}>{createListOpen || editListId ? 'Cancel' : 'Close'}</Button
 			>
