@@ -33,6 +33,11 @@
 	import * as InputGroup from '$lib/components/ui/input-group';
 	import { tick } from 'svelte';
 	import { Spinner } from '$lib/components/ui/spinner';
+	import Calendar from '$lib/components/ui/calendar/calendar.svelte';
+	import * as Popover from '$lib/components/ui/popover';
+	import { Label } from '$lib/components/ui/label';
+	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import { getLocalTimeZone, CalendarDate, today } from '@internationalized/date';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.restaurantDetailsId) ||
@@ -45,13 +50,14 @@
 	);
 	let isCalculatingRoute = $state(false);
 	let reviewOpen = $state(false);
-	let newReview = $state<Omit<NewReview, 'createdBy'>>({
+	let newReview = $state<Omit<NewReview, 'createdBy' | 'date'> & { date: CalendarDate }>({
 		rating: 5,
 		comment: '',
-		restaurantId: ''
+		restaurantId: '',
+		date: today(getLocalTimeZone())
 	});
 	let editReview = $state({ id: '', open: false, fields: { rating: 5, comment: '' } });
-	let isCreatingReview = $state(false);
+	let createReviewStates = $state({ processing: false, dateSelectorOpen: false });
 	let deleteStates = $state({ confirmOpen: false, processing: false });
 	let editPOIName = $state<{
 		name: string;
@@ -67,23 +73,23 @@
 	});
 
 	async function submitReview() {
-		isCreatingReview = true;
+		createReviewStates.processing = true;
 		const res = await fetch('/api/review', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(newReview)
+			body: JSON.stringify({ ...newReview, date: newReview.date.toDate(getLocalTimeZone()) })
 		});
 		if (!res.ok) {
 			Toaster.error('Failed to create review');
 			const data = await res.json();
 			console.error('Failed to create review:', data);
-			isCreatingReview = false;
+			createReviewStates.processing = false;
 			return;
 		}
 		await invalidateAll();
-		isCreatingReview = false;
+		createReviewStates.processing = false;
 		reviewOpen = false;
 	}
 
@@ -273,7 +279,7 @@
 					<span class="text-sm text-muted-foreground">{formatDate(review.date)}</span>
 				</div>
 				{#if review.comment}
-					<p>{review.comment}</p>
+					<p class="whitespace-pre-wrap">{review.comment}</p>
 				{/if}
 			</div>
 		{/if}
@@ -498,6 +504,7 @@
 			</div>
 		</div>
 	</div>
+
 	<!-- New review dialog -->
 	{#if reviewOpen}
 		<div
@@ -509,15 +516,43 @@
 			transition:scale={{ duration: 200, start: 0.5 }}
 		>
 			<h2 class="text-xl font-medium">New review for {restaurant.name}</h2>
-			<div class="flex flex-col gap-2">
-				<Field.Field>
-					<Field.Label for="newReviewRating">Rating</Field.Label>
-					<Rating
-						rating={newReview.rating}
-						id="newReviewRating"
-						onStarClick={(starIndex) => (newReview.rating = starIndex + 1)}
-					/>
-				</Field.Field>
+			<div class="flex flex-col gap-6">
+				<div class="grid grid-cols-2">
+					<Field.Field>
+						<Field.Label for="newReviewRating">Rating</Field.Label>
+						<Rating
+							rating={newReview.rating}
+							id="newReviewRating"
+							onStarClick={(starIndex) => (newReview.rating = starIndex + 1)}
+						/>
+					</Field.Field>
+					<div class="flex flex-col gap-3">
+						<Label for="newReviewDate" class="px-1">Date of visit</Label>
+						<Popover.Root bind:open={createReviewStates.dateSelectorOpen}>
+							<Popover.Trigger id="newReviewDate">
+								{#snippet child({ props })}
+									<Button {...props} variant="outline" class="w-full justify-between font-normal">
+										{newReview.date
+											? newReview.date.toDate(getLocalTimeZone()).toLocaleDateString()
+											: 'Select date'}
+										<ChevronDownIcon />
+									</Button>
+								{/snippet}
+							</Popover.Trigger>
+							<Popover.Content class="w-auto overflow-hidden p-0" align="start">
+								<Calendar
+									type="single"
+									bind:value={newReview.date}
+									captionLayout="dropdown"
+									onValueChange={() => {
+										createReviewStates.dateSelectorOpen = false;
+									}}
+									maxValue={today(getLocalTimeZone())}
+								/>
+							</Popover.Content>
+						</Popover.Root>
+					</div>
+				</div>
 				<Field.Field>
 					<Field.Label for="newReviewComment">Comment</Field.Label>
 					<Textarea
@@ -531,14 +566,16 @@
 			</div>
 
 			<div class="flex flex-row items-center justify-end gap-2">
-				<Button variant="outline" onclick={() => (reviewOpen = false)} disabled={isCreatingReview}
-					>Cancel</Button
+				<Button
+					variant="outline"
+					onclick={() => (reviewOpen = false)}
+					disabled={createReviewStates.processing}>Cancel</Button
 				>
 				<Button
 					variant="default"
 					onclick={submitReview}
-					disabled={isCreatingReview}
-					loading={isCreatingReview}>Create</Button
+					disabled={createReviewStates.processing}
+					loading={createReviewStates.processing}>Create</Button
 				>
 			</div>
 		</div>
