@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { AvailableEmojis, Coordinates, Review } from './types';
+import type { AvailableEmojis, Coordinates, Review } from '../types';
 import { getDistance } from 'ol/sphere';
 import { Style as OlStyle, Text as OlText, Fill as OlFill } from 'ol/style';
 import { createIconStyle } from 'svelte-openlayers/utils';
@@ -216,3 +216,20 @@ export function portal(el: HTMLElement, target?: HTMLElement | string) {
 		destroy
 	};
 }
+
+export const noop = (...args: unknown[]) => {
+	void args;
+};
+
+export function urlStartsWith(url: string, path: string | string[] | RegExp): boolean {
+	if (Array.isArray(path)) return path.some((p) => urlStartsWith(url, p));
+	if (path instanceof RegExp) return path.test(url);
+	// For the `/` path
+	if (path.length === 1) return path.at(-1) === path;
+
+	return url.startsWith(path);
+}
+
+export * from './logger';
+export * from './form';
+export * from './dietary';

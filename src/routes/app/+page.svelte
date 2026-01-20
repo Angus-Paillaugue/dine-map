@@ -13,13 +13,14 @@
 	import TooltipManager from './TooltipManager.svelte';
 	import { onMount, tick } from 'svelte';
 	import Navigation from './Navigation.svelte';
-	import QuickActions from './QuickActions.svelte';
+	import QuickActions from '$lib/components/QuickActions/QuickActions.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let restaurants = $derived<RestaurantType[]>(page.data.restaurants);
 	let lists = $derived<List[]>(page.data.lists);
 	let restaurantIdsInLists = $derived.by(() => {
 		// This used to more efficiently filter restaurants on the map based on lists since it only updates when lists change
-		const map = new Map<List['id'], Set<RestaurantType['id']>>();
+		const map = new SvelteMap<List['id'], Set<RestaurantType['id']>>();
 		for (const list of lists) {
 			map.set(list.id, new Set(list.restaurants.map((r) => r.id)));
 		}
@@ -71,16 +72,22 @@
 		const extent = restaurantSource.getExtent();
 		if (extent.every(Number.isFinite)) {
 			map.getView().fit(extent, { padding: [50, 50, 50, 50], duration: 500, maxZoom });
+		} else {
+			// Focus on user location if no restaurants are visible
+			const userLocation = Globals.getCurrentUserPosition();
+			if (userLocation) {
+				map.getView().animate({
+					center: fromLonLat(userLocation),
+					zoom: 14,
+					duration: 500
+				});
+			}
 		}
 	}
 
 	async function resetMapView() {
 		await tick();
 		focusOnCurrentSource();
-	}
-
-	function getMap() {
-		return map;
 	}
 
 	// Apply source in an effect because in a derived, it does not reflect the changes on the rendered source
@@ -130,7 +137,5 @@
 	<TooltipManager />
 </MapComponent.Root>
 
-<!-- Top bar (pill buttons & manage bookmarks) -->
-<div class="absolute top-2 right-2 left-0 z-10 flex flex-row items-center">
-	<QuickActions />
-</div>
+<!-- Top bar (pill buttons) -->
+<QuickActions />

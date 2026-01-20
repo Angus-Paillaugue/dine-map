@@ -1,4 +1,5 @@
-import type { Restaurant } from '$lib/types';
+import type { Restaurant, User } from '$lib/types';
+import { RestaurantDAO } from '../db/RestaurantDAO';
 import { dietaryPreferenceService } from './diet';
 
 export interface Microservice {
@@ -32,6 +33,24 @@ export class MicroserviceManager {
 
 	getServices() {
 		return Array.from(this.services.keys());
+	}
+
+	async runDietaryForAllRestaurants(userId: User['id']) {
+		const restaurants = await RestaurantDAO.getAllRestaurants(userId);
+		console.log(
+			`Running dietary-preference microservice for ${restaurants.length} restaurants of user ${userId}`
+		);
+		for (const restaurant of restaurants) {
+			try {
+				await this.process(restaurant, ['dietary-preference']);
+			} catch (err) {
+				const msg = err instanceof Error ? err.message : String(err);
+				console.error(
+					`Failed to run dietary-preference microservice for restaurant ${restaurant.id}:`,
+					msg
+				);
+			}
+		}
 	}
 
 	/**
@@ -85,9 +104,10 @@ export class MicroserviceManager {
 				await svc.call(poi);
 				return;
 			} catch (err) {
+				const msg = err instanceof Error ? err.message : String(err);
 				console.error(
 					`Microservice ${svc.name} failed on attempt ${attempt + 1} for POI ${poi.id}:`,
-					err
+					msg
 				);
 				lastErr = err;
 				attempt++;

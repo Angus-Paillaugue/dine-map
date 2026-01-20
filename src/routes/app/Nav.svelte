@@ -28,11 +28,8 @@
 	<div class={cn('absolute inset-0 -z-10', className)} style="pointer-events: none;">
 		<!-- masked blurred fill (only inside the shape) -->
 		<div
-			class="absolute inset-0"
+			class="absolute inset-0 bg-input/50 backdrop-blur-sm"
 			style="
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        background: rgba(255,255,255,0.06);
         mask: url(#nav-shape-mask) no-repeat center / contain;
         -webkit-mask: url(#nav-shape-mask) no-repeat center / contain;
         mask-repeat: no-repeat;
@@ -64,7 +61,7 @@
 
 <!-- Gradient overlay -->
 <div
-	class="fixed right-0 bottom-0 left-0 h-16 bg-linear-to-b from-transparent to-background to-80%"
+	class="fixed right-0 bottom-0 left-0 z-20 h-16 bg-linear-to-b from-transparent to-background to-80%"
 ></div>
 
 <div class="fixed right-1 bottom-1 left-1 z-20 p-2">
@@ -75,7 +72,7 @@
 				'shrink-0 transition-all duration-300 ease-back-out',
 				Globals.navStates.search && 'translate-y-[150%]'
 			)}
-			href={resolve('/')}
+			href={resolve('/app')}
 		>
 			<div class="relative size-10 p-2.5 text-foreground">
 				{@render backgroundShape()}
@@ -120,7 +117,7 @@
 			aria-label="Manage your saved lists"
 			class="relative flex h-10 w-full flex-row items-center justify-center rounded-full border border-border bg-input/50 p-2.5 text-foreground backdrop-blur-sm"
 			onclick={() => {
-				goto('/');
+				goto(resolve('/'));
 				Globals.navStates.search = !Globals.navStates.search;
 			}}
 		>
@@ -145,7 +142,7 @@
 		</button>
 
 		<a
-			href={resolve('/account')}
+			href={resolve('/app/account')}
 			aria-label="Manage your account"
 			class={cn(
 				'shrink-0 transition-all duration-300 ease-back-out',

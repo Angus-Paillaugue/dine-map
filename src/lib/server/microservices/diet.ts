@@ -7,9 +7,6 @@ export class DietaryPreferenceMicroservice implements Microservice {
 	maxRetries = 5;
 
 	async call(poi: Restaurant) {
-		console.log(
-			`DietaryPreferenceMicroservice: Fetching dietary preferences for restaurant ${poi.id}`
-		);
 		const [lon, lat] = poi.coordinates;
 		const bbox = [lat - 0.00001, lon - 0.00001, lat + 0.00001, lon + 0.00001].join(',');
 		const query = `

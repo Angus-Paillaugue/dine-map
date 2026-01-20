@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import type { Restaurant } from '$lib/types';
 	import { onMount } from 'svelte';
+	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
 	import { fade } from 'svelte/transition';
 
 	let restaurants = $derived(page.data.restaurants as Restaurant[]);
@@ -28,20 +29,26 @@
 	});
 
 	const weekStartDay = 1; // 0 = Sunday, 1 = Monday
-	const thisWeekStart = new Date(now);
+	const thisWeekStart = new SvelteDate(now);
 	thisWeekStart.setDate(now.getDate() - now.getDay() + weekStartDay);
 	thisWeekStart.setHours(0, 0, 0, 0);
 
-	const gridStart = new Date(thisWeekStart);
+	const gridStart = new SvelteDate(thisWeekStart);
 	gridStart.setDate(thisWeekStart.getDate() - (nbWeeksInYear - 1) * 7);
 	gridStart.setHours(0, 0, 0, 0);
 
+	interface HeaderMonth {
+		name: string;
+		longName: string;
+		colspan: number;
+	}
+
 	// build header months aligned to the grid columns (each column is a week)
 	const headerMonths = (() => {
-		const map = new Map();
+		const map = new SvelteMap<string, HeaderMonth>();
 		const order: string[] = [];
 		for (let w = 0; w < nbWeeksInYear; w++) {
-			const weekDate = new Date(gridStart);
+			const weekDate = new SvelteDate(gridStart);
 			weekDate.setDate(gridStart.getDate() + w * 7);
 			const key = `${weekDate.getFullYear()}-${weekDate.getMonth()}`;
 			if (!map.has(key)) {
@@ -52,9 +59,9 @@
 				});
 				order.push(key);
 			}
-			map.get(key).colspan++;
+			map.get(key)!.colspan++;
 		}
-		return order.map((k) => map.get(k));
+		return order.map((k) => map.get(k)).filter((v) => v !== undefined) as HeaderMonth[];
 	})();
 
 	let maxContrib = $derived.by(() => {
@@ -72,7 +79,7 @@
 
 	function getNbContributionsForDay(weekNb: number, dayNb: number) {
 		// derive the cell date from the precomputed gridStart
-		const date = new Date(gridStart);
+		const date = new SvelteDate(gridStart);
 		date.setDate(gridStart.getDate() + weekNb * 7 + dayNb);
 
 		const contributions = restaurants.filter((r) => {
@@ -100,7 +107,7 @@
 	};
 
 	const getWeekdayName = (dayNb: number) => {
-		const date = new Date(gridStart);
+		const date = new SvelteDate(gridStart);
 		date.setDate(gridStart.getDate() + dayNb);
 		return date.toLocaleDateString(locale, { weekday: 'short' });
 	};
@@ -168,7 +175,7 @@
 	</div>
 {/if}
 
-<div class="no-scrollbar w-full overflow-x-auto">
+<section class="no-scrollbar w-full overflow-x-auto">
 	<table class="mx-auto w-max border-separate border-spacing-1">
 		<caption class="sr-only">Your annual reviews in a Github like contribution table</caption>
 		<thead>
@@ -214,4 +221,4 @@
 			{/each}
 		</tbody>
 	</table>
-</div>
+</section>

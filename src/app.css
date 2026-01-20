@@ -94,4 +94,8 @@
 	.ol-attribution {
 		@apply !top-auto !right-auto !bottom-14 !left-0 !rounded-r-lg !bg-card !text-foreground;
 	}
+
+	::selection {
+		@apply bg-input text-foreground;
+	}
 }

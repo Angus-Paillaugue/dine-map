@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import Globals from '$lib/globals.svelte';
 	import { availableEmojis, type List, type NewList, type Restaurant } from '$lib/types';
-	import { Bookmark, Map, Pen, Plus, Save, Trash, Upload, X } from '@lucide/svelte';
+	import { Map, Pen, Plus, Save, Trash, Upload, X } from '@lucide/svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -12,8 +12,8 @@
 	import EmojiPicker from '$lib/components/emojiPicker/emojiPicker.svelte';
 	import Toaster from '$lib/components/Toast';
 	import FileDropZone from '$lib/components/FileDropZone.svelte';
-	import { getContext } from 'svelte';
 	import { linear } from 'svelte/easing';
+	import { resolve } from '$app/paths';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.toggleList) || null
@@ -34,7 +34,7 @@
 		open: false,
 		list: null
 	});
-	let editedList = $state<Required<NewList>>({
+	let editedList = $state<Required<Omit<NewList, 'createdBy'>>>({
 		name: '',
 		description: '',
 		icon: availableEmojis[0]
@@ -115,7 +115,7 @@
 	};
 
 	async function saveList() {
-		// TODO: fix restaurants array being passed tin the PUT request
+		// TODO: fix restaurants array being passed in the PUT request
 		const res = await fetch(`/api/list`, {
 			method: 'PUT',
 			headers: {
@@ -499,7 +499,7 @@
 								Globals.navStates.bookmarks = false;
 								Globals.toggleList = null;
 								listDetailsId = null;
-								goto('/');
+								goto(resolve('/'));
 								Globals.resetMapView();
 							} else {
 								createListOpen = true;

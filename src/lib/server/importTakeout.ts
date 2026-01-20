@@ -1,4 +1,4 @@
-import { RestaurantNameMaxLength, type Coordinates } from '$lib/types';
+import { RestaurantNameMaxLength, type Coordinates, type User } from '$lib/types';
 import path from 'node:path';
 import { ListDAO } from './db/ListDAO';
 import { RestaurantDAO } from './db/RestaurantDAO';
@@ -34,12 +34,12 @@ async function extractFromCSVContents(CSVContent: string) {
 	return result;
 }
 
-export async function importListFromTakeout(file: File) {
+export async function importListFromTakeout(file: File, userId: User['id']): Promise<string> {
 	const CSVContent = await file.text();
 	const listName = path.basename(file.name, path.extname(file.name)).slice(0, 20);
 	const items = await extractFromCSVContents(CSVContent);
 	const restaurantIds: string[] = [];
-	const allRestaurants = await RestaurantDAO.getAllRestaurants();
+	const allRestaurants = await RestaurantDAO.getAllRestaurants(userId);
 	for (const item of items) {
 		for (const existingRestaurant of allRestaurants) {
 			if (isSamePlace(existingRestaurant.coordinates, item.coordinates)) {
@@ -49,16 +49,18 @@ export async function importListFromTakeout(file: File) {
 		}
 		const restaurant = await RestaurantDAO.createRestaurant({
 			name: item.name,
-			coordinates: item.coordinates
+			coordinates: item.coordinates,
+			createdBy: userId
 		});
 		restaurantIds.push(restaurant.id);
 	}
-	const listExists = await ListDAO.getListByName(listName);
+	const listExists = await ListDAO.getListByName(listName, userId);
 	let listId: string;
 	if (!listExists) {
 		// Add items to existing list
 		const newList = await ListDAO.createList({
-			name: listName
+			name: listName,
+			createdBy: userId
 		});
 		listId = newList.id;
 	} else {

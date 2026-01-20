@@ -18,12 +18,14 @@
 	import { SearchIcon } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { page } from '$app/state';
-	import { cn, isSamePlace } from '$lib/utils';
-	import { fade, fly, scale, slide } from 'svelte/transition';
+	import { isSamePlace } from '$lib/utils';
+	import { fade, scale } from 'svelte/transition';
 	import Toaster from '$lib/components/Toast';
 	import Globals from '$lib/globals.svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import AnimateLoad from '$lib/components/AnimateLoad.svelte';
+	import { flip } from 'svelte/animate';
 
 	let searchInput = $state<HTMLInputElement | null>(null);
 	let viewBox = $derived(Globals.viewBox);
@@ -137,7 +139,9 @@
 		}
 	}
 
-	async function createRestaurant(restaurant: NewRestaurant) {
+	async function createRestaurant(
+		restaurant: Omit<NewRestaurant, 'createdBy'>
+	): Promise<Restaurant> {
 		const response = await fetch('/api/restaurant', {
 			method: 'POST',
 			headers: {
@@ -179,12 +183,10 @@
 
 <!-- Backdrop -->
 {#if Globals.navStates.search}
-	<button
-		aria-label="Dismiss search"
+	<div
 		class="absolute inset-0 z-20 bg-background/50 backdrop-blur-xs"
 		transition:fade={{ duration: 200 }}
-		onclick={() => (Globals.navStates.search = false)}
-	></button>
+	></div>
 {/if}
 
 {#if Globals.navStates.search}
@@ -206,13 +208,14 @@
 		</InputGroup.Root>
 		<!-- Search results -->
 		{#if searchResults.length > 0}
-			<div class="mt-4 flex flex-col gap-2">
-				{#each searchResults as result}
+			<AnimateLoad class="mt-4 flex flex-col gap-2">
+				{#each searchResults as result (result.place_id)}
 					{@const associatedPlace = restaurants.find((rest) =>
 						isSamePlace(rest.coordinates, result.coordinates)
 					)}
 					<div
 						class="pointer-events-auto flex w-full flex-row items-center justify-between gap-2 rounded border border-border bg-card p-4"
+						animate:flip={{ duration: 300 }}
 					>
 						<div class="flex flex-col gap-1">
 							<p class="text-base font-medium">
@@ -231,9 +234,9 @@
 						</Button>
 					</div>
 				{/each}
-			</div>
+			</AnimateLoad>
 		{:else if Globals.navStates.search && searchResults && searchInput && searchInput.value?.length > 2}
-			<p class="mx-auto text-sm">No results found.</p>
+			<p class="mx-auto mt-4 text-sm">No results found.</p>
 		{/if}
 	</div>
 {/if}

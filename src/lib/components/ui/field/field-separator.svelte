@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { cn, type WithElementRef } from '$lib/utils.js';
+	import { Separator } from '$lib/components/ui/separator/index';
+	import { cn, type WithElementRef } from '$lib/utils';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import type { Snippet } from 'svelte';
 
@@ -29,7 +29,7 @@
 			class="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
 			data-slot="field-separator-content"
 		>
-			{@render children()}
+			{@render children?.()}
 		</span>
 	{/if}
 </div>
