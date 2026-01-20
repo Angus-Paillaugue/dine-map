@@ -31,11 +31,11 @@ export const ReviewZ = z.object({
 	rating: z.number().min(0).max(5),
 	comment: z.string(),
 	restaurantId: UUID,
-	date: z.date(),
+	date: DateZ,
 	createdBy: UUID
 });
 export type Review = z.infer<typeof ReviewZ>;
-export const NewReviewZ = ReviewZ.omit({ id: true, date: true });
+export const NewReviewZ = ReviewZ.omit({ id: true });
 export type NewReview = z.infer<typeof NewReviewZ>;
 
 // Dietary preferences
@@ -74,7 +74,7 @@ export const ListZ = z.object({
 	id: UUID,
 	name: z.string().max(20),
 	description: z.string().max(200).optional(),
-	createdAt: z.date(),
+	createdAt: DateZ,
 	restaurants: z.array(RestaurantZ),
 	createdBy: UUID,
 	icon: z.enum(availableEmojis)

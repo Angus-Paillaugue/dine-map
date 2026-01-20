@@ -30,14 +30,12 @@
   "id": "/?source=pwa",
   "start_url": "/?source=pwa",
   "background_color": "#0a0a0a",
-  "display": "fullscreen",
+  "display": "standalone",
   "scope": "/",
   "theme_color": "#0a0a0a",
-  "shortcuts": [],
   "description": "The Dine Map app",
-  "screenshots": [],
   "categories": ["utilities"],
-  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "display_override": ["standalone", "browser"],
   "launch_handler": {
     "client_mode": ["navigate-existing", "auto"]
   }

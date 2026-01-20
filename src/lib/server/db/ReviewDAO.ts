@@ -55,8 +55,8 @@ export class ReviewDAO {
 
 	static async createReview(review: NewReview): Promise<Review> {
 		const [r] = await sql<ReviewTable[]>`
-      INSERT INTO "review" (restaurant_id, rating, comment, created_by)
-      VALUES (${review.restaurantId}, ${review.rating}, ${review.comment}, ${review.createdBy})
+      INSERT INTO "review" (restaurant_id, rating, comment, created_by, created_at)
+      VALUES (${review.restaurantId}, ${review.rating}, ${review.comment}, ${review.createdBy}, ${review.date || new Date()})
       RETURNING *
     `;
 		return this.convertToReview(r);
