@@ -107,7 +107,7 @@
 	};
 </script>
 
-<section class="no-scrollbar w-full overflow-x-auto">
+<div class="no-scrollbar w-full overflow-x-auto">
 	<table class="mx-auto w-max border-separate border-spacing-1">
 		<caption class="sr-only">Your annual reviews in a Github like contribution table</caption>
 		<thead>
@@ -187,4 +187,4 @@
 			{/each}
 		</tbody>
 	</table>
-</section>
+</div>
