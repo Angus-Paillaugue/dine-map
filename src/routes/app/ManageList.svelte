@@ -115,7 +115,6 @@
 	};
 
 	async function saveList() {
-		// TODO: fix restaurants array being passed in the PUT request
 		const res = await fetch(`/api/list`, {
 			method: 'PUT',
 			headers: {
@@ -495,11 +494,12 @@
 							if (createListOpen) {
 								createList();
 							} else if (listDetailsId) {
+								// TODO: make this work from pages outside `/app` (only works half the time currently)
 								Globals.mapFilterList = [listDetailsId];
 								Globals.navStates.bookmarks = false;
 								Globals.toggleList = null;
 								listDetailsId = null;
-								goto(resolve('/'));
+								goto(resolve('/'), { replaceState: true });
 								Globals.resetMapView();
 							} else {
 								createListOpen = true;
