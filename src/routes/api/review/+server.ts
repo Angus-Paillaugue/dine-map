@@ -76,7 +76,7 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 
 export const PUT: RequestHandler = async ({ request, locals }) => {
 	const body = await request.json();
-	const schema = ReviewZ.pick({ id: true, rating: true, comment: true });
+	const schema = ReviewZ.pick({ id: true, rating: true, comment: true, date: true });
 	const parseResult = schema.safeParse(body);
 	if (!parseResult.success) {
 		return json({ errors: parseResult.error }, { status: 400 });

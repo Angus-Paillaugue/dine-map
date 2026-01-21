@@ -5,9 +5,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import type { Restaurant } from '$lib/types';
-	import { onMount } from 'svelte';
 	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
-	import { fade } from 'svelte/transition';
+	import * as Popover from '$lib/components/ui/popover';
 
 	let restaurants = $derived(page.data.restaurants as Restaurant[]);
 	const locale = page.data.locale ?? 'en-US';
@@ -22,11 +21,6 @@
 		};
 	});
 	const nbWeeksInYear = Math.ceil(months.reduce((acc, month) => acc + month.nbWeeks, 0));
-	let tooltip = $state({
-		date: null as Date | null,
-		contributions: 0,
-		pos: { x: 0, y: 0 }
-	});
 
 	const weekStartDay = 1; // 0 = Sunday, 1 = Monday
 	const thisWeekStart = new SvelteDate(now);
@@ -111,69 +105,7 @@
 		date.setDate(gridStart.getDate() + dayNb);
 		return date.toLocaleDateString(locale, { weekday: 'short' });
 	};
-
-	function onMouseMove(event: MouseEvent) {
-		const target = event.target as HTMLElement;
-		if (
-			target &&
-			target.dataset &&
-			target.dataset.date &&
-			target.classList.contains('contribution-square')
-		) {
-			const dateStr = parseInt(target.dataset.date);
-			const date = new Date(dateStr);
-			const contributions = restaurants.filter((r) => {
-				const reviews = r.reviews || [];
-				return reviews.some((review) => {
-					const reviewDate = new Date(review.date);
-					return (
-						reviewDate.getFullYear() === date.getFullYear() &&
-						reviewDate.getMonth() === date.getMonth() &&
-						reviewDate.getDate() === date.getDate()
-					);
-				});
-			}).length;
-
-			if (contributions > 0) {
-				const box = target.getBoundingClientRect();
-
-				tooltip = {
-					date,
-					contributions,
-					pos: { x: box.left + box.width / 2, y: box.top }
-				};
-				return;
-			}
-		}
-		tooltip = {
-			date: null,
-			contributions: 0,
-			pos: { x: 0, y: 0 }
-		};
-	}
-
-	onMount(() => {
-		document.addEventListener('mousemove', onMouseMove);
-		return () => {
-			document.removeEventListener('mousemove', onMouseMove);
-		};
-	});
 </script>
-
-{#if tooltip.date}
-	<div
-		class="pointer-events-none absolute z-10 flex -translate-x-1/2 flex-row gap-2 rounded border border-border bg-card px-2 py-1 font-mono text-sm transition-all duration-200"
-		style="top: {tooltip.pos.y - 40}px; left: {tooltip.pos.x}px;"
-		transition:fade={{ duration: 200 }}
-	>
-		{tooltip.contributions} review{tooltip.contributions !== 1 ? 's' : ''} on
-		{tooltip.date.toLocaleDateString(locale, {
-			month: 'long',
-			day: 'numeric',
-			year: tooltip.date.getFullYear() === now.getFullYear() ? undefined : 'numeric'
-		})}
-	</div>
-{/if}
 
 <section class="no-scrollbar w-full overflow-x-auto">
 	<table class="mx-auto w-max border-separate border-spacing-1">
@@ -205,14 +137,48 @@
 					{#each Array(nbWeeksInYear), j}
 						{@const contributions = getNbContributionsForDay(j, i)}
 						{#if now >= contributions.date}
-							<td
-								tabindex={0}
-								class="contribution-square size-3 rounded-[3px] {getColor(
-									contributions.contributions
-								)}"
-								style="shape-rendering: geometricPrecision;"
-								data-date={contributions.date.getTime()}
-							></td>
+							{#if contributions.contributions > 0}
+								<td
+									tabindex={0}
+									class="contribution-square size-fit rounded-[3px] {getColor(
+										contributions.contributions
+									)}"
+									style="shape-rendering: geometricPrecision;"
+									data-date={contributions.date.getTime()}
+								>
+									<Popover.Root>
+										<Popover.Trigger
+											openOnHover
+											openDelay={200}
+											closeDelay={100}
+											class="block size-3"
+										></Popover.Trigger>
+										<Popover.Content side="top" class="w-fit px-2 py-1">
+											<p class="font-mono text-sm">
+												{contributions.contributions} review{contributions.contributions !== 1
+													? 's'
+													: ''} on
+												{contributions.date.toLocaleDateString(locale, {
+													month: 'long',
+													day: 'numeric',
+													year:
+														contributions.date.getFullYear() === now.getFullYear()
+															? undefined
+															: 'numeric'
+												})}
+											</p>
+										</Popover.Content>
+									</Popover.Root>
+								</td>
+							{:else}
+								<td
+									class="contribution-square size-3 rounded-[3px] {getColor(
+										contributions.contributions
+									)}"
+									style="shape-rendering: geometricPrecision;"
+									data-date={contributions.date.getTime()}
+								></td>
+							{/if}
 						{:else}
 							<td class="size-3"></td>
 						{/if}

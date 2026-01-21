@@ -8,8 +8,5 @@ export default defineConfig({
 		rollupOptions: {
 			external: ['bun']
 		}
-	},
-	server: {
-		allowedHosts: ['dine-map2.home.paillaugue.fr']
 	}
 });
