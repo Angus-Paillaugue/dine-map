@@ -2,10 +2,17 @@
 	import Globals from '$lib/globals.svelte';
 	import { cn } from '$lib/utils';
 	import { BadgeQuestionMark, Bookmark, Home, Search, User, X } from '@lucide/svelte';
-	import { scale, slide } from 'svelte/transition';
+	import { fade, scale, slide } from 'svelte/transition';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
+	import { Button } from '$lib/components/ui/button';
+
+	let aboutOpen = $state(false);
 </script>
+
+<svelte:head>
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
+</svelte:head>
 
 <!-- hidden defs for mask -->
 <svg
@@ -156,6 +163,7 @@
 		</a>
 
 		<button
+			onclick={() => (aboutOpen = !aboutOpen)}
 			class={cn(
 				'shrink-0 transition-all duration-300 ease-back-out',
 				Globals.navStates.search && 'translate-y-[150%]'
@@ -168,3 +176,57 @@
 		</button>
 	</div>
 </div>
+
+{#if aboutOpen}
+	<div
+		class="fixed inset-0 z-30 bg-background/50 backdrop-blur-xs"
+		transition:fade={{ duration: 200 }}
+	></div>
+	<div
+		class="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[90%] max-w-125 -translate-x-1/2 -translate-y-1/2 flex-col space-y-8 rounded border border-border bg-card p-4"
+		transition:scale={{ duration: 200, start: 0.5 }}
+	>
+		<div class="space-y-6 overflow-y-auto">
+			<section class="space-y-1">
+				<h2 class="text-2xl font-medium">About Dine Map</h2>
+				<div class="space-y-2">
+					<p>Dine map was created as an alternative to google maps for saving restaurants.</p>
+					<p>It is an open source project built with SvelteKit and OpenLayers.</p>
+					<p>
+						It first was a simple search and save app, but later evolved to a full multi-user review
+						and saving platform.
+					</p>
+					<p>
+						If you like this project, please consider starring it on GitHub to show your support!
+						<iframe
+							src="https://ghbtns.com/github-btn.html?user=Angus-Paillaugue&repo=dine-map&type=star&count=true&size=large"
+							frameborder="0"
+							scrolling="0"
+							width="170"
+							height="30"
+							title="GitHub"
+							loading="lazy"
+							style="border: 0; overflow: hidden;"
+						></iframe>
+					</p>
+				</div>
+			</section>
+
+			<section class="space-y-1">
+				<h2 class="text-2xl font-medium">Credits</h2>
+				<ul class="list-inside list-disc space-y-1 text-sm">
+					<li>
+						<b>Map Data</b>: &copy;
+						<a href="https://www.openstreetmap.org/copyright" class="underline" target="_blank"
+							>OpenStreetMap</a
+						> contributors
+					</li>
+				</ul>
+			</section>
+		</div>
+
+		<div class="flex flex-row items-center justify-end gap-2">
+			<Button variant="outline" onclick={() => (aboutOpen = false)}>Close</Button>
+		</div>
+	</div>
+{/if}

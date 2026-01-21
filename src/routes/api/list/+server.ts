@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 };
 
 export const PUT: RequestHandler = async ({ request, locals }) => {
-	const schema = ListZ.omit({ createdAt: true, restaurants: true });
+	const schema = ListZ.omit({ createdAt: true, restaurants: true, createdBy: true });
 	const body = await request.json();
 	const parseResult = schema.safeParse(body);
 	if (!parseResult.success) {

@@ -4,6 +4,7 @@ import { ListDAO } from './db/ListDAO';
 import { RestaurantDAO } from './db/RestaurantDAO';
 import { isSamePlace } from '$lib/utils';
 
+// TODO: check file format and handle errors
 async function extractFromCSVContents(CSVContent: string) {
 	const columns = ['title', 'note', 'url', 'tags', 'comments'];
 	const lines = CSVContent.split('\n')

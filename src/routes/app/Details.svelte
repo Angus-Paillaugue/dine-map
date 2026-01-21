@@ -14,7 +14,7 @@
 	import * as Field from '$lib/components/ui/field';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import Rating from './Rating.svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { cn, DIETARY_INFO_DISPLAY, formatDate } from '$lib/utils';
 	import * as Empty from '$lib/components/ui/empty';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
@@ -39,6 +39,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { getLocalTimeZone, CalendarDate, today } from '@internationalized/date';
+	import { resolve } from '$app/paths';
 
 	let restaurant = $derived(
 		(page.data.restaurants as Restaurant[]).find((r) => r.id === Globals.restaurantDetailsId) ||
@@ -188,7 +189,6 @@
 					)
 				}
 			};
-			console.log(editReview);
 		}
 	};
 
@@ -252,11 +252,13 @@
 		}
 	}
 
+	// TODO: make this work from pages outside `/app`
 	async function showRouteToPoi(poi: Restaurant) {
 		isCalculatingRoute = true;
 		await Globals.showRouteToPoi(poi);
 		isCalculatingRoute = false;
 		Globals.restaurantDetailsId = null;
+		goto(resolve('/'), { replaceState: true });
 	}
 </script>
 
@@ -312,6 +314,7 @@
 				<Field.Field>
 					<Field.Label for="editReviewComment">Comment</Field.Label>
 					<Textarea
+						autoFit={{ active: true, minRows: 3, maxRows: 10 }}
 						bind:value={editReview.fields.comment}
 						id="editReviewComment"
 						placeholder="Your comment on the place"

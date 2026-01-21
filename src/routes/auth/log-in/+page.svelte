@@ -22,11 +22,15 @@
 		invalidFields.clear();
 		if (form?.errors) {
 			for (const error of form.errors) {
-				invalidFields.set(error.field, error.message);
+				invalidFields.set(error.field as string, error.message);
 			}
 		}
 	});
 </script>
+
+<svelte:head>
+	<title>Log in - Dine Map</title>
+</svelte:head>
 
 <div class="relative flex grow flex-col items-center justify-center">
 	<div
