@@ -205,6 +205,8 @@
 							width="170"
 							height="30"
 							title="GitHub"
+							loading="lazy"
+							style="border: 0; overflow: hidden;"
 						></iframe>
 					</p>
 				</div>

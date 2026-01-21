@@ -31,7 +31,7 @@ This script will download and process the tiles of the area you choose previousl
 
 > [!WARNING]
 > This can be a long and intensive process.
-> The resulting file can be weigh then's of Gb
+> The resulting file can weigh tens of GB
 
 Once finished, you should have a file called [tileset/tiles.mbtiles](tileset/tiles.mbtiles). This will be used by the file server to render the map tiles with the custom matching styles.
 

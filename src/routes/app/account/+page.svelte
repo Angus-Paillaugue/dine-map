@@ -54,7 +54,7 @@
 		<div class="px-2">
 			<h2 class="text-xl font-medium">
 				<HeartIcon class="mr-2 mb-1 inline fill-current text-red-500/50" />
-				Favourite places
+				Favorite places
 			</h2>
 		</div>
 		{#if favoriteRestaurants.length > 0}
