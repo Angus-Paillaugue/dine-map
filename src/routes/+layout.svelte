@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Toaster from '$lib/components/Toast';
 	import type { LayoutProps } from './$types';
+	import * as Tooltip from '$lib/components/ui/tooltip';
 
 	let { children }: LayoutProps = $props();
 </script>
@@ -15,6 +16,8 @@
 
 <div class="flex h-dvh w-dvw flex-col">
 	<div class="flex grow flex-col p-2">
-		{@render children?.()}
+		<Tooltip.Provider>
+			{@render children?.()}
+		</Tooltip.Provider>
 	</div>
 </div>

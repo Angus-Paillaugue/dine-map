@@ -70,16 +70,30 @@ export class ReviewDAO {
 	}
 
 	static async updateReview(id: Review['id'], updates: Partial<NewReview>): Promise<Review | null> {
+		const normalisedUpdates: Partial<ReviewTable> = {};
+
+		if (updates.date) {
+			normalisedUpdates.created_at = updates.date.toISOString();
+		}
+		if (updates.restaurantId) {
+			normalisedUpdates.restaurant_id = updates.restaurantId;
+		}
+		if (updates.rating !== undefined) {
+			normalisedUpdates.rating = updates.rating;
+		}
+		if (updates.comment) {
+			normalisedUpdates.comment = updates.comment;
+		}
+
 		const [updatedRow] = await sql<ReviewTable[]>`
 			UPDATE "review"
-			SET ${sql(updates, 'comment', 'rating')}
+			SET ${sql(normalisedUpdates, 'rating', 'comment', 'created_at', 'restaurant_id')}
 			WHERE id = ${id}
 			RETURNING *
 		`;
-
 		if (!updatedRow) {
 			return null;
 		}
-		return this.getReviewById(updatedRow.id);
+		return this.convertToReview(updatedRow);
 	}
 }
