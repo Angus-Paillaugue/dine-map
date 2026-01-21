@@ -13,7 +13,8 @@ export const GET: RequestHandler = async ({ fetch, params }) => {
 	return new Response(response.body, {
 		headers: {
 			'Content-Type': 'image/png',
-			'Cache-Control': `public, max-age=${CACHE_DURATION}, immutable`
+			'Cache-Control': `public, max-age=${CACHE_DURATION}, immutable`,
+			'Access-Control-Allow-Origin': '*'
 		}
 	});
 };
